@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_BLTouchSoftware/templates *
+recursive-include octoprint_BLTouchSoftware/translations *
+recursive-include octoprint_BLTouchSoftware/static *
