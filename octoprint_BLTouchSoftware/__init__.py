@@ -14,7 +14,6 @@ import octoprint.plugin
 
 class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.SettingsPlugin,
-							octoprint.plugin.AssetPlugin,
 							octoprint.plugin.TemplatePlugin):
 
 	def __init__(self):
@@ -34,35 +33,24 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		# index_to_ypos[GRID_MAX_POINTS_Y];
 		self._z_offset = 0
 		self._z_values = []
-		for y in range(self._settings.get(["grid_max_points_x"])):
-			self._z_values.append([0.0 for x in range(self._settings.get(["grid_max_points_y"]))])
+
 
 	##~~ SettingsPlugin mixin
 	def get_settings_defaults(self):
-		return dict(url="https://en.wikipedia.org/wiki/Hello_world",
-					grid_max_points_x=3,
+		return dict(grid_max_points_x=3,
 					grid_max_points_y=3)
 
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
-		self._logger.info("Hello World!")
+		self._logger.info("Loading BLTouch!")
+		for y in range(self._settings.get(["grid_max_points_x"])):
+			self._z_values.append([0.0 for x in range(self._settings.get(["grid_max_points_y"]))])
 
 	def get_template_configs(self):
 		return [
-			dict(type="navbar", custom_bindings=False),
-			dict(type="settings", custom_bindings=False)
+			dict(type="settings", template="bltouchsoftware_settings.jinja2", custom_bindings=False)
 		]
-	##~~ AssetPlugin mixin
-
-	def get_assets(self):
-		# Define your plugin's asset files to automatically include in the
-		# core UI here.
-		return dict(
-			js=["js/BLTouchSoftware.js"],
-			css=["css/BLTouchSoftware.css"],
-			less=["less/BLTouchSoftware.less"]
-		)
 
 	##~~ Softwareupdate hook
 
