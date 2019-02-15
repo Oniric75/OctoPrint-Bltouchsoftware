@@ -16,37 +16,27 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.SettingsPlugin,
 							octoprint.plugin.TemplatePlugin):
 
-	def __init__(self):
-		super(BltouchsoftwarePlugin, self).__init__()
-		self._min_x = 0
-		self._max_x = 0
-		self._min_y = 0
-		self._max_y = 0
-		self._min_z = 0
-		self._max_z = 0
-		self._mesh_x_dist = 0
-		self._mesh_y_dist = 0
 
-		# static float z_offset,
-		# z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
-		# index_to_xpos[GRID_MAX_POINTS_X],
-		# index_to_ypos[GRID_MAX_POINTS_Y];
-		self._z_offset = 0
-		self._z_values = []
 
 
 	##~~ SettingsPlugin mixin
 	def get_settings_defaults(self):
 		return dict(grid_max_points_x=3,
-					grid_max_points_y=3)
+					grid_max_points_y=3,
+					enable=False)
+
+	def on_settings_save(self, data):
+		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+
 
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
 		self._logger.info("Loading BLTouch!")
-		for y in range(self._settings.get(["grid_max_points_x"])):
-			self._z_values.append([0.0 for x in range(self._settings.get(["grid_max_points_y"]))])
 
+	##~~ octoprint.plugin.TemplatePlugin
+	# register settings pages
 	def get_template_configs(self):
 		return [
 			dict(type="settings", template="bltouchsoftware_settings.jinja2", custom_bindings=False)
