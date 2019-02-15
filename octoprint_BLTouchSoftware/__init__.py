@@ -17,6 +17,23 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.AssetPlugin,
 							octoprint.plugin.TemplatePlugin):
 
+	def __init__(self):
+		super(BltouchsoftwarePlugin, self).__init__()
+		self._min_x = 0
+		self._max_x = 0
+		self._min_y = 0
+		self._max_y = 0
+		self._min_z = 0
+		self._max_z = 0
+		self._mesh_x_dist = 0
+		self._mesh_y_dist = 0
+
+		# static float z_offset,
+		# z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
+		# index_to_xpos[GRID_MAX_POINTS_X],
+		# index_to_ypos[GRID_MAX_POINTS_Y];
+		self._z_offset = 0
+
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
