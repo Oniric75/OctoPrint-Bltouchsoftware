@@ -3,27 +3,53 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 from BedLeveling import BedLeveling
+import re
+from BLTouchGPIO import BLTouchGPIO
 
 
 class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.SettingsPlugin,
+							octoprint.plugin.AssetPlugin,
 							octoprint.plugin.TemplatePlugin):
+
+	def __init__(self):
+		super(BltouchsoftwarePlugin, self).__init__()
+		self.BLTouchGPIO = BLTouchGPIO()
+
+	##~~ AssetPlugin mixin
+	def get_assets(self):
+		return dict(
+			js=["js/BLTouchSoftware.js"]
+		)
 
 	##~~ SettingsPlugin mixin
 	def get_settings_defaults(self):
 		return dict(grid_max_points_x=3,
 					grid_max_points_y=3,
+					z_clearance_deploy_probe=10,  # z clearance for deploy/stow
+					x_probe_offset_from_extruder=10,  # x offset: -left  +right  [of the nozzle]
+					y_probe_offset_from_extruder=10,  # y offset: -front +behind [the nozzle]
+					z_probe_offset_from_extruder=0,  # z offset: -below +above  [the nozzle]
+					min_probe_edge=10,
+					xy_probe_speed=8000,  # x and y axis travel speed(mm / m) between	probes
+					homing_feedrate_z=4 * 60,  # z homing speeds (mm/m)
+					z_probe_speed_fast=4 * 60,  # feedrate(mm / m)	for the first approach when double-probing
+					z_probe_speed_slow=4 * 60 / 2,  # Z_PROBE_SPEED_FAST / 2
 					enable=False)
 
 	def on_settings_save(self, data):
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+		self._logger.info("maxx: %d maxy: %d" % (
+			self._settings.get(["grid_max_points_x"]), self._settings.get(["grid_max_points_y"])))
 		BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
 
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
+
 		BedLeveling.set_logger(self._logger)
+		BedLeveling.printer = self._printer
 		self._logger.info("Loading BLTouch!")
 		profile = self._printer_profile_manager.get_default()
 		volume = profile["volume"]
@@ -51,21 +77,52 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	# register settings pages
 	def get_template_configs(self):
 		return [
-			dict(type="settings", template="bltouchsoftware_settings.jinja2", custom_bindings=False)
+			dict(type="settings"),
+			dict(type="sidebar", icon="arrows-alt")
 		]
 
-	##~~ G29Hooker
+	##~~ G28 & G29Hooker
+	#  G28: safe homing: home XY then go to the center and Z home
+	#  G28 Z : safe Z homing : go to the center and Z home
+	#  G29 : start probing
+	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
+		if cmd and cmd == "G28":
+			self._logger.info("Detect G28")
+			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
+			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
+			return ["G28 X Y",
+					"G91",
+					("G1 X%.3f Y%.3f" % (px, py)),
+					"G90",
+					"G28 Z"]
+		elif cmd and cmd == "G28 Z":
+			self._logger.info("Detect G28 Z")
+			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
+			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
+			return ["G90", ("G1 X%.3f Y%.3f" % (px, py)), "G91",
+					"G28 Z"]
 
-	def rewrite_g29(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
-		if gcode and gcode == "G29":
-			if self._logger is not None and self._settings is not None:
-				self._logger.info("Detect and replace G29 & %s" % self._settings.get(["grid_max_points_x"]))
-			cmd = ""
-		return cmd,
+		elif cmd and cmd == "G29":
+			BedLeveling.active = True
+			BedLeveling.reset()
+			BedLeveling.gcode_g29()
+			return
+
+	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
+	def read_m114(self, comm, line, *args, **kwargs):
+		if BedLeveling.active is True:
+			# self._logger.info("===comm:%s, line:%s===" % (comm, line))
+			m114 = re.match(r"ok X:(\d+\.\d+) Y:(\d+\.\d+) Z:(\d+\.\d+).*", line, re.IGNORECASE)
+			if m114:
+				self._logger.info("M114 result: X:%s|Y:%s|Z:%s" % (m114.group(1), m114.group(2), m114.group(3)))
+				BedLeveling.set_current_pos(float(m114.group(1)), float(m114.group(2)), float(m114.group(3)))
+				if BedLeveling.state == MeshLevelingState.MeshStart:
+					BedLeveling.realz = 0
+					BedLeveling.state = MeshLevelingState.MeshNext
+				BedLeveling.gcode_g29()
+		return line
 
 	##~~ AutoBedLeveling Probe
-
-
 
 	##~~ Softwareupdate hook
 
@@ -103,5 +160,7 @@ def __plugin_load__():
 	global __plugin_hooks__
 	__plugin_hooks__ = {
 		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
-		"octoprint.comm.protocol.gcode.queuing": __plugin_implementation__.rewrite_g29
+		"octoprint.comm.protocol.gcode.queuing": __plugin_implementation__.rewrite_hooker,
+		# "octoprint.comm.protocol.gcode.sending": __plugin_implementation__.G29_loop,
+		"octoprint.comm.protocol.gcode.received": __plugin_implementation__.read_m114
 	}

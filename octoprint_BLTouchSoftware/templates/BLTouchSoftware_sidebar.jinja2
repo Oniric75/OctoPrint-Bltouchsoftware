@@ -1,0 +1,7 @@
+<div class="row-fluid text-center" style="padding-top: 20px;">
+    <button class="btn btn-primary"
+            data-bind="click:function(){start_level();}, text:stage, enable: controlViewModel.isOperational() && !controlViewModel.isPrinting() && !controlViewModel.isPaused() && loginStateViewModel.isUser()">
+        Start
+    </button>
+    <button class="btn btn-danger" data-bind="enable: started()">Stop</button>
+</div>
