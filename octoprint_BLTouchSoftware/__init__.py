@@ -4,8 +4,8 @@ from __future__ import absolute_import
 import octoprint.plugin
 from BedLeveling import BedLeveling
 import re
-from BLTouchGPIO import BLTouchGPIO
 
+from MeshLevelingState import MeshLevelingState
 
 class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.SettingsPlugin,
@@ -14,7 +14,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 	def __init__(self):
 		super(BltouchsoftwarePlugin, self).__init__()
-		self.BLTouchGPIO = BLTouchGPIO()
+
 
 	##~~ AssetPlugin mixin
 	def get_assets(self):
@@ -86,7 +86,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	#  G28 Z : safe Z homing : go to the center and Z home
 	#  G29 : start probing
 	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
-		if cmd and cmd == "G28":
+		if cmd and (cmd == "G28" or cmd == "G28 Z"):
 			self._logger.info("Detect G28")
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
@@ -95,18 +95,12 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					("G1 X%.3f Y%.3f" % (px, py)),
 					"G90",
 					"G28 Z"]
-		elif cmd and cmd == "G28 Z":
-			self._logger.info("Detect G28 Z")
-			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			return ["G90", ("G1 X%.3f Y%.3f" % (px, py)), "G91",
-					"G28 Z"]
-
 		elif cmd and cmd == "G29":
 			BedLeveling.active = True
 			BedLeveling.reset()
 			BedLeveling.gcode_g29()
 			return
+		return cmd
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
 	def read_m114(self, comm, line, *args, **kwargs):

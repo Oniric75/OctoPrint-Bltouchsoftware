@@ -1,7 +1,10 @@
 # coding=utf-8
 from __future__ import absolute_import
 
+import time
+from math import sqrt
 from MeshLevelingState import MeshLevelingState
+from BLTouchGPIO import BLTouchGPIO, BLTouchState
 
 
 # noinspection PyClassHasNoInit
@@ -9,6 +12,7 @@ class BedLeveling:
 	index_to_xpos = None  # [grid_max_points_x] : list of x position for each probe x point
 	index_to_ypos = None  # [grid_max_points_y] : list of x position for each probe y point
 	current_position = None
+	prev_position = None
 	min_x = 0
 	min_y = 0
 	min_z = 0
@@ -32,7 +36,7 @@ class BedLeveling:
 	first_run = True  # used to know if it's the first time into the g29 or not
 	__logger = None
 	printer = None
-
+	bltouch = BLTouchGPIO()
 	# ~~ CONSTANT
 
 	X_AXIS = 0  # index for X_AXIS: used for Marlin clearness
@@ -47,6 +51,7 @@ class BedLeveling:
 	HOMING_FEEDRATE_XY = 50 * 60  # X & Y Homing speeds (mm/m)
 	Z_PROBE_SPEED_FAST = HOMING_FEEDRATE_Z  # Feedrate(mm / m)	for the first approach when double-probing
 	Z_PROBE_SPEED_SLOW = Z_PROBE_SPEED_FAST / 2  # Feedrate(mm / m)	for the "accurate" probe of each point
+	WAIT_FACTOR = 800
 
 	# PROBE (TODO: available in advanced settings)
 	Z_CLEARANCE_DEPLOY_PROBE = 10  # Z Clearance for Deploy/Stow
@@ -72,6 +77,10 @@ class BedLeveling:
 
 	@staticmethod
 	def set_current_pos(px, py, pz):
+		if BedLeveling.prev_position is None:
+			BedLeveling.prev_position = [0, 0, 0]
+		else:
+			BedLeveling.prev_position = BedLeveling.current_position
 		BedLeveling.current_position = [px, py, pz]
 
 	# ~~  BLTOUCH Software
@@ -132,24 +141,46 @@ class BedLeveling:
 								range(BedLeveling.grid_max_points_x)]
 
 	@staticmethod
-	def do_blocking_move_to_z(pz, speed=None):
+	def do_blocking_move_to_z(pz, relative=False, speed=None):
 		if speed is None:
 			speed = BedLeveling.HOMING_FEEDRATE_XY
+		if relative:
+			BedLeveling.do_blocking_move_to(0, 0, pz, relative, speed)
+		else:
 			BedLeveling.do_blocking_move_to(BedLeveling.current_position[BedLeveling.X_AXIS],
-											BedLeveling.current_position[BedLeveling.X_AXIS],
-											pz, speed)
+											BedLeveling.current_position[BedLeveling.Y_AXIS],
+											pz, relative, speed)
 
 	@staticmethod
-	def do_blocking_move_to(px, py, pz, speed=None):
+	def do_blocking_move_to(px, py, pz, relative=False, speed=None):
+		axes = {}
 		#  return "G0 E0 F%d X%d Y%d Z%d" % (BedLeveling.HOMING_FEEDRATE_XY, px, py, pz)
 		if speed is None:
 			speed = BedLeveling.HOMING_FEEDRATE_XY
-		BedLeveling.printer.jog(dict(x=px, y=py, z=pz), False, speed)
+		if relative:
+			dist = abs(px) + abs(py) + abs(pz)
+			if px != 0:
+				axes["x"] = px
+			if py != 0:
+				axes["y"] = py
+			if pz != 0:
+				axes["z"] = pz
+		else:
+			dist = sqrt((px - BedLeveling.prev_position[BedLeveling.X_AXIS]) ** 2 +
+						(py - BedLeveling.prev_position[BedLeveling.Y_AXIS]) ** 2 +
+						(pz - BedLeveling.prev_position[BedLeveling.Z_AXIS]) ** 2)
+			axes["x"] = px
+			axes["y"] = py
+			axes["z"] = pz
+
+		BedLeveling.printer.jog(axes, relative, speed)
+		time.sleep(dist * BedLeveling.WAIT_FACTOR / float(speed))
 
 	@staticmethod
 	def do_m114(home=False):
 		if home:
 			BedLeveling.printer.commands(["G28", "M114"])
+			BedLeveling.bltouch.reset()
 		else:
 			BedLeveling.printer.commands("M114")
 
@@ -169,40 +200,42 @@ class BedLeveling:
 		px = 0
 		py = 0
 		if BedLeveling.state == MeshLevelingState.MeshStart:
-			BedLeveling.reset()
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
 			if BedLeveling.probe_index > BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:  # TODO: corriger le bug du dernier point
 				BedLeveling.printlog("The end!")
 				return
-			if BedLeveling.first_run:  # move the head to the next position
+			if BedLeveling.first_run:  # move the head to the next position TODO: prendre en compte l'offset du bltouch
 				BedLeveling.first_run = False
 				BedLeveling.zigzag(5)  # Move close to the bed
-				BedLeveling.realz = 5
+				#	BedLeveling.realz = 5
+				BedLeveling.bltouch.probeMode(BLTouchState.BLTOUCH_DEPLOY)
 				BedLeveling.do_m114()
 				BedLeveling.printlog("Init!")
 			else:  # the head is in position X Y, fast probing
-				if BedLeveling.current_position[BedLeveling.Z_AXIS] != 0:
-					BedLeveling.realz -= 1
+				if not BedLeveling.bltouch.trigger:
+					#	BedLeveling.realz -= 1
 					BedLeveling.printlog("Go Down: z=%d" % BedLeveling.current_position[BedLeveling.Z_AXIS])
-					BedLeveling.do_blocking_move_to_z(BedLeveling.current_position[BedLeveling.Z_AXIS] - 1)
+					BedLeveling.do_blocking_move_to_z(-1, True)
+
 					BedLeveling.do_m114()
-				else:  # bltouch touch bed and reset Z home.
-					BedLeveling.realz += 1
+				else:  # bltouch touch bed.
+					#	BedLeveling.realz += 1
 					BedLeveling.state = MeshLevelingState.MeshProbe
-					BedLeveling.do_blocking_move_to_z(BedLeveling.realz)
+					BedLeveling.do_blocking_move_to_z(BedLeveling.current_position[BedLeveling.Z_AXIS] + 1)
+					BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
 					BedLeveling.do_m114()
 		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing: TODO : à corriger
-			if BedLeveling.current_position[BedLeveling.Z_AXIS] != 0:
-				BedLeveling.realz -= 0.1
+			if not BedLeveling.bltouch.trigger:
+				#  BedLeveling.realz -= 0.1
 				BedLeveling.do_blocking_move_to_z(BedLeveling.current_position[BedLeveling.Z_AXIS] - 0.1)
 				BedLeveling.do_m114()
 			else:  # bltouch touch bed again.
 				BedLeveling.state = MeshLevelingState.MeshNext
 				BedLeveling.first_run = True
 				BedLeveling.probe_index += 1
-				# store Z offset for current X Y
-				BedLeveling.printer.commands(["G28", "M114"])
+			# todo: store Z offset for current X Y
+			# BedLeveling.printer.commands(["G28", "M114"])
 		elif BedLeveling.state == MeshLevelingState.MeshSet:
 			pass
 		#  BedLeveling.probe_index += 1
