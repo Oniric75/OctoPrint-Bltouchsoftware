@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
+import octoprint_BLTouchSoftware.BLTouchGPIO
 import re
 
 from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
@@ -100,6 +101,14 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.reset()
 			BedLeveling.gcode_g29()
 			return
+		elif cmd and cmd == "M280 P0 S10":
+			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_DEPLOY)
+		elif cmd and cmd == "M280 P0 S90":
+			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_STOW)
+		elif cmd and cmd == "M280 P0 S120":
+			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_SELFTEST)
+		elif cmd and cmd == "M280 P0 S160":
+			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_RESET)
 		return cmd
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
