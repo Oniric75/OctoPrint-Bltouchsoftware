@@ -151,11 +151,11 @@ class BedLeveling:
 		if speed is None:
 			speed = BedLeveling.HOMING_FEEDRATE_XY
 		if relative:
-			BedLeveling.do_blocking_move_to(0, 0, pz, relative, speed)
+			time.sleep(BedLeveling.do_blocking_move_to(0, 0, pz, relative, speed))
 		else:
-			BedLeveling.do_blocking_move_to(BedLeveling.current_position[BedLeveling.X_AXIS],
-											BedLeveling.current_position[BedLeveling.Y_AXIS],
-											pz, relative, speed)
+			time.sleep(BedLeveling.do_blocking_move_to(BedLeveling.current_position[BedLeveling.X_AXIS],
+													   BedLeveling.current_position[BedLeveling.Y_AXIS],
+													   pz, relative, speed))
 
 	@staticmethod
 	def do_blocking_move_to(px, py, pz, relative=False, speed=None):
@@ -182,7 +182,7 @@ class BedLeveling:
 		BedLeveling.printer.jog(axes, relative, speed)
 		sleeptime = dist * BedLeveling.WAIT_FACTOR / float(speed)
 		BedLeveling.printlog("sleepTime:%f" % sleeptime)
-		time.sleep(sleeptime)
+		return sleeptime
 
 	@staticmethod
 	def do_m114(home=False):
@@ -201,10 +201,10 @@ class BedLeveling:
 		BedLeveling.printlog("zigX=%d, zagY=%d, Z=%d" % (
 		BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
 		BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER, pz))
-		BedLeveling.do_blocking_move_to(
+		time.sleep(BedLeveling.do_blocking_move_to(
 			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
 			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
-			pz)
+			pz))
 
 	@staticmethod
 	def gcode_g29():
@@ -253,6 +253,7 @@ class BedLeveling:
 				BedLeveling.printlog("index: %d | X:%f, Y:%f; Z:%f" % (
 				BedLeveling.probe_index - 1, BedLeveling.current_position[0], BedLeveling.current_position[1],
 				BedLeveling.current_position[2]))
+				BedLeveling.do_m114()
 			# todo: store Z offset for current X Y
 
 		elif BedLeveling.state == MeshLevelingState.MeshSet:
