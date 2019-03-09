@@ -140,6 +140,11 @@ class BedLeveling:
 		BedLeveling.z_values = [[0 for y in range(BedLeveling.grid_max_points_y)] for x in
 								range(BedLeveling.grid_max_points_x)]
 
+	#	if BedLeveling.bltouch is not None:
+	#		BedLeveling.bltouch.cleanup()
+	#	bltouch = BLTouchGPIO()
+
+
 	@staticmethod
 	def do_blocking_move_to_z(pz, relative=False, speed=None):
 		if speed is None:
@@ -203,13 +208,15 @@ class BedLeveling:
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
 			if BedLeveling.probe_index > BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:  # TODO: corriger le bug du dernier point
+				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_STOW)
+				BedLeveling.active = False
 				BedLeveling.printlog("The end!")
 				return
 			if BedLeveling.first_run:  # move the head to the next position TODO: prendre en compte l'offset du bltouch
 				BedLeveling.first_run = False
 				BedLeveling.zigzag(5)  # Move close to the bed
 				#	BedLeveling.realz = 5
-				BedLeveling.bltouch.probeMode(BLTouchState.BLTOUCH_DEPLOY)
+				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 				BedLeveling.do_m114()
 				BedLeveling.printlog("Init!")
 			else:  # the head is in position X Y, fast probing
