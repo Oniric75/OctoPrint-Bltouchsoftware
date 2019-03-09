@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
 import time
-from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
 
 # define for bltouch status
 class BLTouchState:
