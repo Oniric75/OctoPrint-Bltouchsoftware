@@ -26,12 +26,21 @@ class BLTouchGPIO:
 		self.bltouch = GPIO.PWM(self.GPIO_Control, 50)
 		self.bltouch.start(0)
 
+	def _setmode(self, PW=1475):
+		GPIO.output(self.GPIO_Control, True)
+		duty = PW / (0.02 * 1000 * 1000)
+		self.bltouch.ChangeDutyCycle(duty)
+		time.sleep(1)
+		GPIO.output(self.GPIO_Control, False)
+
+	'''
 	def _setangle(self, Angle):
 		duty = Angle / 18 + 2
 		GPIO.output(self.GPIO_Control, True)
 		self.bltouch.ChangeDutyCycle(duty)
 		time.sleep(1)
 		GPIO.output(self.GPIO_Control, False)
+	'''
 
 	def reset(self, mode=BLTouchState.BLTOUCH_STOW):
 		self.trigger = False
