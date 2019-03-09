@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
-import octoprint_BLTouchSoftware.BLTouchGPIO
+
 import re
 
 from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
@@ -87,7 +87,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	#  G28 Z : safe Z homing : go to the center and Z home
 	#  G29 : start probing
 	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
-		if cmd and (cmd == "G28" or cmd == "G28 Z"):
+		if cmd and (cmd == "G28" or cmd == "G28 Z" or "G28 Z0"):
 			self._logger.info("Detect G28")
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2

@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
 import time
+from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
 
 # define for bltouch status
 class BLTouchState:
@@ -51,8 +52,9 @@ class BLTouchGPIO:
 	def probemode(self, mode=BLTouchState.BLTOUCH_STOW):
 		self._setangle(mode)
 
-	def callback(self):
+	def callback(self, channel):
 		self.trigger = True
+		BedLeveling.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
 
 	def cleanup(self):
 		self.bltouch.stop()
