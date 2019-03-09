@@ -44,16 +44,18 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			self._settings.get(["grid_max_points_x"]), self._settings.get(["grid_max_points_y"])))
 		BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
-		BedLeveling.x_probe_offset_from_extruder = self._settings.get(["x_probe_offset_from_extruder"])
-		BedLeveling.y_probe_offset_from_extruder = self._settings.get(["y_probe_offset_from_extruder"])
-		BedLeveling.z_probe_offset_from_extruder = self._settings.get(["z_probe_offset_from_extruder"])
+		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
+		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
+		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
+		BedLeveling.XY_PROBE_SPEED = int(settings.get(["xy_probe_speed"]))
 
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
-		BedLeveling.x_probe_offset_from_extruder = self._settings.get(["x_probe_offset_from_extruder"])
-		BedLeveling.y_probe_offset_from_extruder = self._settings.get(["y_probe_offset_from_extruder"])
-		BedLeveling.z_probe_offset_from_extruder = self._settings.get(["z_probe_offset_from_extruder"])
+		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
+		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
+		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
+		BedLeveling.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
 		BedLeveling.set_logger(self._logger)
 		BedLeveling.printer = self._printer
 		self._logger.info("Loading BLTouch!")
@@ -98,7 +100,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			return ["G28 X Y",
 					"G91",
-					("G1 X%.3f Y%.3f" % (px, py)),
+					("G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED)),
 					"G90",
 					"G28 Z"]
 		elif cmd and cmd == "G29":
@@ -136,6 +138,8 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					BedLeveling.realz = 0
 					BedLeveling.state = MeshLevelingState.MeshNext
 				BedLeveling.gcode_g29()
+			else:
+				self._logger.info("no match m114: %s" % line)
 		return line
 
 	##~~ AutoBedLeveling Probe
