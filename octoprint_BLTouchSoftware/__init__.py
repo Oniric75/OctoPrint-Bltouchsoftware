@@ -102,13 +102,13 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.gcode_g29()
 			return
 		elif cmd and cmd == "M280 P0 S10":
-			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_DEPLOY)
+			BedLeveling.bltouch.probemode(10)  # BLTOUCH_DEPLOY
 		elif cmd and cmd == "M280 P0 S90":
-			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_STOW)
+			BedLeveling.bltouch.probemode(90)  # BLTOUCH_STOW
 		elif cmd and cmd == "M280 P0 S120":
-			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_SELFTEST)
+			BedLeveling.bltouch.probemode(120)  # BLTOUCH_SELFTEST
 		elif cmd and cmd == "M280 P0 S160":
-			BedLeveling.bltouch.probemode(octoprint_BLTouchSoftware.BLTouchGPIO.BLTouchstate.BLTOUCH_RESET)
+			BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
 		return cmd
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
