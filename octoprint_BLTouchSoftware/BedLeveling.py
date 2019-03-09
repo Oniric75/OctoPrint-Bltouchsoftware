@@ -27,6 +27,7 @@ class BedLeveling:
 	realz = -1  # keep track of the z home reference
 	z_offset = 0
 	z_values = None  # [grid_max_point_x][grid_max_point_y]
+	sleepTime = 0
 
 	state = MeshLevelingState.MeshStart
 	_zigzag_x_index = -1
@@ -132,6 +133,7 @@ class BedLeveling:
 	@staticmethod
 	def reset():
 		BedLeveling.state = MeshLevelingState.MeshStart
+		BedLeveling.sleepTime = 0
 		BedLeveling._zigzag_x_index = 0
 		BedLeveling._zigzag_y_index = 0
 		BedLeveling.probe_index = 0
@@ -151,11 +153,11 @@ class BedLeveling:
 		if speed is None:
 			speed = BedLeveling.HOMING_FEEDRATE_XY
 		if relative:
-			time.sleep(BedLeveling.do_blocking_move_to(0, 0, pz, relative, speed))
+			BedLeveling.do_blocking_move_to(0, 0, pz, relative, speed)
 		else:
-			time.sleep(BedLeveling.do_blocking_move_to(BedLeveling.current_position[BedLeveling.X_AXIS],
-													   BedLeveling.current_position[BedLeveling.Y_AXIS],
-													   pz, relative, speed))
+			BedLeveling.do_blocking_move_to(BedLeveling.current_position[BedLeveling.X_AXIS],
+											BedLeveling.current_position[BedLeveling.Y_AXIS],
+											pz, relative, speed)
 
 	@staticmethod
 	def do_blocking_move_to(px, py, pz, relative=False, speed=None):
@@ -180,9 +182,9 @@ class BedLeveling:
 			axes["z"] = pz
 
 		BedLeveling.printer.jog(axes, relative, speed)
-		sleeptime = dist * BedLeveling.WAIT_FACTOR / float(speed)
-		BedLeveling.printlog("sleepTime:%f" % sleeptime)
-		return sleeptime
+		BedLeveling.sleepTime = dist * BedLeveling.WAIT_FACTOR / float(speed)
+		BedLeveling.printlog("sleepTime:%f" % BedLeveling.sleepTime)
+
 
 	@staticmethod
 	def do_m114(home=False):
@@ -201,15 +203,20 @@ class BedLeveling:
 		BedLeveling.printlog("zigX=%d, zagY=%d, Z=%d" % (
 		BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
 		BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER, pz))
-		time.sleep(BedLeveling.do_blocking_move_to(
+		BedLeveling.do_blocking_move_to(
 			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
 			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
-			pz))
+			pz)
 
 	@staticmethod
 	def gcode_g29():
 		px = 0
 		py = 0
+		if BedLeveling.sleepTime > 5:
+			time.sleep(5)
+		else:
+			time.sleep(BedLeveling.sleepTime)
+
 		if BedLeveling.state == MeshLevelingState.MeshStart:
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
