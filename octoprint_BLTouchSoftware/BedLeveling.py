@@ -180,7 +180,9 @@ class BedLeveling:
 			axes["z"] = pz
 
 		BedLeveling.printer.jog(axes, relative, speed)
-		time.sleep(dist * BedLeveling.WAIT_FACTOR / float(speed))
+		sleeptime = dist * BedLeveling.WAIT_FACTOR / float(speed)
+		BedLeveling.printlog("sleepTime:%f" % sleeptime)
+		time.sleep(sleeptime)
 
 	@staticmethod
 	def do_m114(home=False):
@@ -196,7 +198,9 @@ class BedLeveling:
 		BedLeveling._zigzag_y_index = BedLeveling.probe_index / BedLeveling.grid_max_points_x
 		if BedLeveling._zigzag_y_index % 2:
 			BedLeveling.zigzag_x_index = BedLeveling.grid_max_points_x - 1 - BedLeveling.probe_index
-		BedLeveling.printlog("zigX=%d, zigY=%d" % (BedLeveling._zigzag_x_index, BedLeveling._zigzag_y_index))
+		BedLeveling.printlog("zigX=%d, zagY=%d, Z=%d" % (
+		BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
+		BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER, pz))
 		BedLeveling.do_blocking_move_to(
 			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
 			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
@@ -210,15 +214,17 @@ class BedLeveling:
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
 			if BedLeveling.probe_index > BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:  # TODO: corriger le bug du dernier point
+				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_STOW)
 				BedLeveling.active = False
 				BedLeveling.printlog("The end!")
 				return
 			if BedLeveling.first_run:  # move the head to the next position TODO: prendre en compte l'offset du bltouch
 				BedLeveling.first_run = False
-				BedLeveling.do_blocking_move_to_z(5, True)
-				BedLeveling.zigzag(0)  # Move close to the bed
+				BedLeveling.do_blocking_move_to_z(10, True)
+				BedLeveling.zigzag(10)  # Move close to the bed
 				#	BedLeveling.realz = 5
+				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 				BedLeveling.do_m114()
 				BedLeveling.printlog("Init!")
