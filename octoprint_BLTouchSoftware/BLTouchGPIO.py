@@ -65,7 +65,7 @@ class BLTouchGPIO:
 
 	def callback(self, channel):
 		self.trigger = True
-		BedLeveling.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
+		self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
 
 	def cleanup(self):
 		self.bltouch.stop()
