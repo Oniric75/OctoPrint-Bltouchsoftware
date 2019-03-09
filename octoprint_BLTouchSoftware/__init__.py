@@ -27,10 +27,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	def get_settings_defaults(self):
 		return dict(grid_max_points_x=3,
 					grid_max_points_y=3,
-					z_clearance_deploy_probe=10,  # z clearance for deploy/stow
-					x_probe_offset_from_extruder=10,  # x offset: -left  +right  [of the nozzle]
-					y_probe_offset_from_extruder=10,  # y offset: -front +behind [the nozzle]
-					z_probe_offset_from_extruder=0,  # z offset: -below +above  [the nozzle]
+					z_clearance_deploy_probe=20,  # z clearance for deploy/stow
+					x_probe_offset_from_extruder=36,  # x offset: -left  +right  [of the nozzle]
+					y_probe_offset_from_extruder=12,  # y offset: -front +behind [the nozzle]
+					z_probe_offset_from_extruder=0.45,  # z offset: -below +above  [the nozzle]
 					min_probe_edge=10,
 					xy_probe_speed=8000,  # x and y axis travel speed(mm / m) between	probes
 					homing_feedrate_z=4 * 60,  # z homing speeds (mm/m)
@@ -44,11 +44,16 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			self._settings.get(["grid_max_points_x"]), self._settings.get(["grid_max_points_y"])))
 		BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
+		BedLeveling.x_probe_offset_from_extruder = self._settings.get(["x_probe_offset_from_extruder"])
+		BedLeveling.y_probe_offset_from_extruder = self._settings.get(["y_probe_offset_from_extruder"])
+		BedLeveling.z_probe_offset_from_extruder = self._settings.get(["z_probe_offset_from_extruder"])
 
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
-
+		BedLeveling.x_probe_offset_from_extruder = self._settings.get(["x_probe_offset_from_extruder"])
+		BedLeveling.y_probe_offset_from_extruder = self._settings.get(["y_probe_offset_from_extruder"])
+		BedLeveling.z_probe_offset_from_extruder = self._settings.get(["z_probe_offset_from_extruder"])
 		BedLeveling.set_logger(self._logger)
 		BedLeveling.printer = self._printer
 		self._logger.info("Loading BLTouch!")

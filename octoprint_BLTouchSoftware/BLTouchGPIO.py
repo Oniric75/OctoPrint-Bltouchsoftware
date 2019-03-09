@@ -56,11 +56,19 @@ class BLTouchGPIO:
 
 	def reset(self, mode=BLTouchState.BLTOUCH_STOW):
 		self.trigger = False
+		self.probemode(BLTouchState.BLTOUCH_RESET)
 		self.probemode(mode)
-		# TODO: self check
+
 
 	def probemode(self, mode=BLTouchState.BLTOUCH_STOW):
-		self._setangle(mode)
+		if mode == BLTouchState.BLTOUCH_DEPLOY:
+			self._setmode(650)
+		elif mode == BLTouchState.BLTOUCH_STOW:
+			self._setmode(1475)
+		elif mode == BLTouchState.BLTOUCH_SELFTEST:
+			self._setmode(1780)
+		elif mode == BLTouchState.BLTOUCH_RESET:
+			self._setmode(2190)
 
 	def callback(self, channel):
 		self.trigger = True

@@ -21,6 +21,9 @@ class BedLeveling:
 	max_z = 0
 	grid_max_points_x = 0  # number of probe grid x. DEFAULT : 3
 	grid_max_points_y = 0  # number of probe grid y. DEFAULT : 3
+	x_probe_offset_from_extruder = 0
+	y_probe_offset_from_extruder = 0
+	z_probe_offset_from_extruder = 0
 	grid_points = 0  # number of points into the grid:  grid_max_points_x * grid_max_points_y
 	mesh_x_dist = 0
 	mesh_y_dist = 0
@@ -197,9 +200,10 @@ class BedLeveling:
 		if BedLeveling._zigzag_y_index % 2:
 			BedLeveling.zigzag_x_index = BedLeveling.grid_max_points_x - 1 - BedLeveling.probe_index
 		BedLeveling.printlog("zigX=%d, zigY=%d" % (BedLeveling._zigzag_x_index, BedLeveling._zigzag_y_index))
-		BedLeveling.do_blocking_move_to(BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index],
-										BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index],
-										pz)
+		BedLeveling.do_blocking_move_to(
+			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.x_probe_offset_from_extruder,
+			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.y_probe_offset_from_extruder,
+			pz)
 
 	@staticmethod
 	def gcode_g29():
@@ -242,8 +246,11 @@ class BedLeveling:
 				BedLeveling.state = MeshLevelingState.MeshNext
 				BedLeveling.first_run = True
 				BedLeveling.probe_index += 1
+				BedLeveling.printlog("index: %d | X:%f, Y:%f; Z:%f" % (
+				BedLeveling.probe_index - 1, BedLeveling.current_position[0], BedLeveling.current_position[1],
+				BedLeveling.current_position[2]))
 			# todo: store Z offset for current X Y
-			# BedLeveling.printer.commands(["G28", "M114"])
+
 		elif BedLeveling.state == MeshLevelingState.MeshSet:
 			pass
 		#  BedLeveling.probe_index += 1
