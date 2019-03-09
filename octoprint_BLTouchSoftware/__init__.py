@@ -138,8 +138,8 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					BedLeveling.realz = 0
 					BedLeveling.state = MeshLevelingState.MeshNext
 				BedLeveling.gcode_g29()
-			else:
-				self._logger.info("no match m114: %s" % line)
+		# else:
+		#	self._logger.info("no match m114: %s" % line)
 		return line
 
 	##~~ AutoBedLeveling Probe

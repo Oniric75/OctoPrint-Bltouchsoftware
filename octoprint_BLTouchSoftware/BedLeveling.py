@@ -216,7 +216,8 @@ class BedLeveling:
 				return
 			if BedLeveling.first_run:  # move the head to the next position TODO: prendre en compte l'offset du bltouch
 				BedLeveling.first_run = False
-				BedLeveling.zigzag(5)  # Move close to the bed
+				BedLeveling.do_blocking_move_to_z(5, True)
+				BedLeveling.zigzag(0)  # Move close to the bed
 				#	BedLeveling.realz = 5
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 				BedLeveling.do_m114()
