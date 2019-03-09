@@ -14,6 +14,7 @@ class BLTouchState:
 # https://sourceforge.net/p/raspberry-gpio-python/wiki/Inputs/
 class BLTouchGPIO:
 
+
 	def __init__(self):
 		self.GPIO_Zmin = 11
 		self.GPIO_Control = 12
@@ -28,7 +29,7 @@ class BLTouchGPIO:
 
 	def _setmode(self, PW=1475):
 		GPIO.output(self.GPIO_Control, True)
-		duty = PW / (0.02 * 1000 * 1000)
+		duty = (PW / (0.02 * 1000 * 1000)) * 100
 		self.bltouch.ChangeDutyCycle(duty)
 		time.sleep(1)
 		GPIO.output(self.GPIO_Control, False)
