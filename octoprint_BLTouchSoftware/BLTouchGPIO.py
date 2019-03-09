@@ -15,7 +15,6 @@ class BLTouchState:
 # https://sourceforge.net/p/raspberry-gpio-python/wiki/Inputs/
 class BLTouchGPIO:
 
-
 	def __init__(self):
 		self.GPIO_Zmin = 11
 		self.GPIO_Control = 12
@@ -27,6 +26,18 @@ class BLTouchGPIO:
 		GPIO.setup(self.GPIO_Control, GPIO.OUT)
 		self.bltouch = GPIO.PWM(self.GPIO_Control, 50)
 		self.bltouch.start(0)
+		self._logger = None
+
+	def setlogger(self, logger):
+		self._logger = logger
+
+	def printlog(self, log, level="INFO"):
+		if self._logger is None:
+			return
+		if level == "INFO":
+			self._logger.info(log)
+		elif level == "DEBUG":
+			self._logger.debug(log)
 
 	def _setmode(self, PW=1475):
 		GPIO.output(self.GPIO_Control, True)

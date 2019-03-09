@@ -65,6 +65,7 @@ class BedLeveling:
 	def set_logger(logger):
 		if logger is not None:
 			BedLeveling.__logger = logger
+			BedLeveling.bltouch.setlogger(logger)
 
 	@staticmethod
 	def printlog(log, level="INFO"):
