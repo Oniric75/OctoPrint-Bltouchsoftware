@@ -2,10 +2,10 @@
 from __future__ import absolute_import
 
 import octoprint.plugin
-from BedLeveling import BedLeveling
+from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
 import re
 
-from MeshLevelingState import MeshLevelingState
+from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
 
 class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.SettingsPlugin,

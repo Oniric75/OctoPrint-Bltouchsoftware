@@ -3,8 +3,8 @@ from __future__ import absolute_import
 
 import time
 from math import sqrt
-from MeshLevelingState import MeshLevelingState
-from BLTouchGPIO import BLTouchGPIO, BLTouchState
+from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
+from octoprint_BLTouchSoftware.BLTouchGPIO import BLTouchGPIO, BLTouchState
 
 
 # noinspection PyClassHasNoInit
