@@ -28,8 +28,8 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		return dict(grid_max_points_x=3,
 					grid_max_points_y=3,
 					z_clearance_deploy_probe=20,  # z clearance for deploy/stow
-					x_probe_offset_from_extruder=36,  # x offset: -left  +right  [of the nozzle]
-					y_probe_offset_from_extruder=12,  # y offset: -front +behind [the nozzle]
+					x_probe_offset_from_extruder=46,  # x offset: -left  +right  [of the nozzle]
+					y_probe_offset_from_extruder=22,  # y offset: -front +behind [the nozzle]
 					z_probe_offset_from_extruder=0.45,  # z offset: -below +above  [the nozzle]
 					min_probe_edge=10,
 					xy_probe_speed=8000,  # x and y axis travel speed(mm / m) between	probes
@@ -80,6 +80,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 		BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
+		BedLeveling.bltouch._setmode(1475)
 
 	##~~ octoprint.plugin.TemplatePlugin
 	# register settings pages
