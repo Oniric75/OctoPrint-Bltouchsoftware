@@ -254,10 +254,10 @@ class BedLeveling:
 					BedLeveling.do_blocking_move_to_z(-1, True)
 					BedLeveling.do_m114()
 				else:  # bltouch touch bed.
-					BedLeveling.realz += 1
+					BedLeveling.realz += 2
 					BedLeveling.state = MeshLevelingState.MeshProbe
 					BedLeveling.first_run = True
-					BedLeveling.do_blocking_move_to_z(1, True)
+					BedLeveling.do_blocking_move_to_z(2, True)
 					BedLeveling.do_m114()
 
 		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing: TODO : probleme quand le point est sous le home : alfawise retourne m114 positif au lieu de négatif
