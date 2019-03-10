@@ -220,7 +220,7 @@ class BedLeveling:
 		if BedLeveling.state == MeshLevelingState.MeshStart:
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
-			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:  # TODO: corriger le bug du dernier point
+			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_STOW)
 				BedLeveling.active = False
