@@ -101,7 +101,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			self._logger.info("Detect G28")
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			return ["G28 X Y",
+			return ["G91",
+					"G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED,
+					"G90",
+					"G28 X Y",
 					"G91",
 					("G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED)),
 					"G90",

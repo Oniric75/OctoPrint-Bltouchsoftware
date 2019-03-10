@@ -227,45 +227,45 @@ class BedLeveling:
 				BedLeveling.printlog(BedLeveling.z_values)
 				BedLeveling.printlog("The end!")
 				return
-			if BedLeveling.first_run:  # move the head to the next position TODO: prendre en compte l'offset du bltouch
+			if BedLeveling.first_run:
 				BedLeveling.first_run = False
-				BedLeveling.do_blocking_move_to_z(BedLeveling.Z_CLEARANCE_DEPLOY_PROBE, True)
+				BedLeveling.do_blocking_move_to_z(BedLeveling.Z_CLEARANCE_DEPLOY_PROBE)
 				BedLeveling.zigzag(BedLeveling.Z_CLEARANCE_DEPLOY_PROBE)  # Move close to the bed
-				#	BedLeveling.realz = 5
+				BedLeveling.realz = BedLeveling.Z_CLEARANCE_DEPLOY_PROBE
 				BedLeveling.do_m114()
 				BedLeveling.printlog("Init!")
 			else:  # the head is in position X Y, fast probing
 				if BedLeveling.current_position[BedLeveling.Z_AXIS] == BedLeveling.Z_CLEARANCE_DEPLOY_PROBE:
 					BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 				if not BedLeveling.bltouch.trigger:
-					#	BedLeveling.realz -= 1
-					BedLeveling.printlog("Go Down: z=%d" % BedLeveling.current_position[BedLeveling.Z_AXIS])
+					BedLeveling.printlog("Go Down: M114z=%f, realZ:%f" % (
+					BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.realz))
+					BedLeveling.realz -= 1
 					BedLeveling.do_blocking_move_to_z(-1, True)
-
 					BedLeveling.do_m114()
 				else:  # bltouch touch bed.
-					#	BedLeveling.realz += 1
+					BedLeveling.realz += 1
 					BedLeveling.state = MeshLevelingState.MeshProbe
-					BedLeveling.do_blocking_move_to_z(BedLeveling.current_position[BedLeveling.Z_AXIS] + 1)
-
+					BedLeveling.do_blocking_move_to_z(1, True)
 					BedLeveling.do_m114()
-		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing: TODO : à corriger
+
+		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing: TODO : probleme quand le point est sous le home : alfawise retourne m114 positif au lieu de négatif
 			if BedLeveling.current_position[BedLeveling.Z_AXIS] == BedLeveling.prev_position[BedLeveling.Z_AXIS] + 1:
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
 			if not BedLeveling.bltouch.trigger:
-				#  BedLeveling.realz -= 0.1
-				BedLeveling.do_blocking_move_to_z(BedLeveling.current_position[BedLeveling.Z_AXIS] - 0.1)
+				BedLeveling.realz -= 0.1
+				BedLeveling.do_blocking_move_to_z(-0.1, True)
 				BedLeveling.do_m114()
 			else:  # bltouch touch bed again.
 				BedLeveling.state = MeshLevelingState.MeshNext
 				BedLeveling.first_run = True
 				BedLeveling.probe_index += 1
-				BedLeveling.printlog("index: %d | X:%f, Y:%f; Z:%f" % (
-				BedLeveling.probe_index - 1, BedLeveling.current_position[0], BedLeveling.current_position[1],
-				BedLeveling.current_position[2]))
+				BedLeveling.printlog("index: %d | X:%f, Y:%f; Z:%f, RealZ:%f" % (
+					BedLeveling.probe_index - 1, BedLeveling.current_position[0], BedLeveling.current_position[1],
+					BedLeveling.current_position[2], BedLeveling.realz))
 				BedLeveling.z_values[BedLeveling._zigzag_x_index][BedLeveling._zigzag_y_index] = \
-					BedLeveling.current_position[BedLeveling.Z_AXIS] - BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER
+					BedLeveling.realz - BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER  # todo: attention ici dans le cas ou on est sous le home Z ? realz < 0
 				BedLeveling.do_m114()
 
 		elif BedLeveling.state == MeshLevelingState.MeshSet:
