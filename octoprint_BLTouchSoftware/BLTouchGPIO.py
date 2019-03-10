@@ -51,7 +51,7 @@ class BLTouchGPIO:
 		GPIO.output(self.GPIO_Control, True)
 		self.bltouch.ChangeDutyCycle(duty)
 		time.sleep(1)
-		GPIO.output(self.GPIO_Control, False)
+		GPIO.output(self.GPIO_Control, False) 
 	'''
 
 	def reset(self, mode=BLTouchState.BLTOUCH_STOW):
