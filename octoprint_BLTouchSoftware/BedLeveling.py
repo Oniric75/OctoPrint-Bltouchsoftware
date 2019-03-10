@@ -111,11 +111,11 @@ class BedLeveling:
 		BedLeveling.grid_points = BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y
 		# define MESH_X_DIST ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
 		BedLeveling.mesh_x_dist = (
-				(BedLeveling.max_x - BedLeveling.min_x) / int(grid_max_points_x) - 1)
+				(BedLeveling.max_x - BedLeveling.min_x) / (int(grid_max_points_x) - 1))
 
 		# define MESH_Y_DIST ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
 		BedLeveling.mesh_y_dist = (
-				(BedLeveling.max_y - BedLeveling.min_y) / int(grid_max_points_y) - 1)
+				(BedLeveling.max_y - BedLeveling.min_y) / (int(grid_max_points_y) - 1))
 
 		BedLeveling.index_to_xpos = []
 		for x in range(int(grid_max_points_x)):
