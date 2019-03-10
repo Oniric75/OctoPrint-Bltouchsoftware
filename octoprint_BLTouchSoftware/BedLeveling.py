@@ -183,7 +183,8 @@ class BedLeveling:
 
 		BedLeveling.printer.jog(axes, relative, speed)
 		BedLeveling.sleepTime = dist * BedLeveling.WAIT_FACTOR / float(speed)
-		BedLeveling.printlog("sleepTime:%f" % BedLeveling.sleepTime)
+
+	# BedLeveling.printlog("sleepTime:%f" % BedLeveling.sleepTime)
 
 
 	@staticmethod
@@ -236,10 +237,11 @@ class BedLeveling:
 				BedLeveling.printlog("Init!")
 			else:  # the head is in position X Y, fast probing
 				if BedLeveling.current_position[BedLeveling.Z_AXIS] == BedLeveling.Z_CLEARANCE_DEPLOY_PROBE:
+					BedLeveling.printlog("start fast probing")
 					BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 					BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 				if not BedLeveling.bltouch.trigger:
-					BedLeveling.printlog("Go Down: M114z=%f, realZ:%f" % (
+					BedLeveling.printlog("Go Down FAST: M114z=%f, realZ:%f" % (
 					BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.realz))
 					BedLeveling.realz -= 1
 					BedLeveling.do_blocking_move_to_z(-1, True)
@@ -254,8 +256,11 @@ class BedLeveling:
 			if BedLeveling.current_position[BedLeveling.Z_AXIS] == BedLeveling.prev_position[BedLeveling.Z_AXIS] + 1:
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
+				BedLeveling.printlog("start slow probing")
 			if not BedLeveling.bltouch.trigger:
 				BedLeveling.realz -= 0.1
+				BedLeveling.printlog("Go Down SlOW: M114z=%f, realZ:%f" % (
+					BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.realz))
 				BedLeveling.do_blocking_move_to_z(-0.1, True)
 				BedLeveling.do_m114()
 			else:  # bltouch touch bed again.
@@ -272,6 +277,7 @@ class BedLeveling:
 					BedLeveling.z_values[BedLeveling._zigzag_x_index][BedLeveling._zigzag_y_index] = \
 						BedLeveling.realz + BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER
 				BedLeveling.do_m114()
+				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 
 		elif BedLeveling.state == MeshLevelingState.MeshSet:
 			pass
