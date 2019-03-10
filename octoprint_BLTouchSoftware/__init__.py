@@ -27,7 +27,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	def get_settings_defaults(self):
 		return dict(grid_max_points_x=3,
 					grid_max_points_y=3,
-					z_clearance_deploy_probe=20,  # z clearance for deploy/stow
+					z_clearance_deploy_probe=10,  # z clearance for deploy/stow
 					x_probe_offset_from_extruder=46,  # x offset: -left  +right  [of the nozzle]
 					y_probe_offset_from_extruder=22,  # y offset: -front +behind [the nozzle]
 					z_probe_offset_from_extruder=0.45,  # z offset: -below +above  [the nozzle]
@@ -47,6 +47,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
 		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
 		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
+		BedLeveling.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
 		BedLeveling.XY_PROBE_SPEED = int(settings.get(["xy_probe_speed"]))
 
 	##~~ octoprint.plugin.StartupPlugin
@@ -55,6 +56,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
 		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
 		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
+		BedLeveling.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
 		BedLeveling.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
 		BedLeveling.set_logger(self._logger)
 		BedLeveling.printer = self._printer

@@ -229,14 +229,14 @@ class BedLeveling:
 				return
 			if BedLeveling.first_run:  # move the head to the next position TODO: prendre en compte l'offset du bltouch
 				BedLeveling.first_run = False
-				BedLeveling.do_blocking_move_to_z(10, True)
-				BedLeveling.zigzag(10)  # Move close to the bed
+				BedLeveling.do_blocking_move_to_z(BedLeveling.Z_CLEARANCE_DEPLOY_PROBE, True)
+				BedLeveling.zigzag(BedLeveling.Z_CLEARANCE_DEPLOY_PROBE)  # Move close to the bed
 				#	BedLeveling.realz = 5
-				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
-				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 				BedLeveling.do_m114()
 				BedLeveling.printlog("Init!")
 			else:  # the head is in position X Y, fast probing
+				if BedLeveling.current_position[BedLeveling.Z_AXIS] == BedLeveling.Z_CLEARANCE_DEPLOY_PROBE:
+					BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 				if not BedLeveling.bltouch.trigger:
 					#	BedLeveling.realz -= 1
 					BedLeveling.printlog("Go Down: z=%d" % BedLeveling.current_position[BedLeveling.Z_AXIS])
@@ -247,9 +247,12 @@ class BedLeveling:
 					#	BedLeveling.realz += 1
 					BedLeveling.state = MeshLevelingState.MeshProbe
 					BedLeveling.do_blocking_move_to_z(BedLeveling.current_position[BedLeveling.Z_AXIS] + 1)
-					BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
+
 					BedLeveling.do_m114()
 		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing: TODO : à corriger
+			if BedLeveling.current_position[BedLeveling.Z_AXIS] == BedLeveling.prev_position[BedLeveling.Z_AXIS] + 1:
+				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
+				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
 			if not BedLeveling.bltouch.trigger:
 				#  BedLeveling.realz -= 0.1
 				BedLeveling.do_blocking_move_to_z(BedLeveling.current_position[BedLeveling.Z_AXIS] - 0.1)
@@ -262,9 +265,8 @@ class BedLeveling:
 				BedLeveling.probe_index - 1, BedLeveling.current_position[0], BedLeveling.current_position[1],
 				BedLeveling.current_position[2]))
 				BedLeveling.z_values[BedLeveling._zigzag_x_index][BedLeveling._zigzag_y_index] = \
-					BedLeveling.current_position[BedLeveling.Z_AXIS]
+					BedLeveling.current_position[BedLeveling.Z_AXIS] - BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER
 				BedLeveling.do_m114()
-			# todo: store Z offset for current X Y
 
 		elif BedLeveling.state == MeshLevelingState.MeshSet:
 			pass
