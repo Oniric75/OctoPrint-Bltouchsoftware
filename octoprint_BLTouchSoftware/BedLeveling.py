@@ -255,14 +255,14 @@ class BedLeveling:
 				if not BedLeveling.bltouch.trigger:
 					BedLeveling.printlog("Go Down FAST: M114z=%f, realZ:%f" % (
 					BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.realz))
-					BedLeveling.realz -= 1
-					BedLeveling.do_blocking_move_to_z(-1, True)
+					BedLeveling.realz -= 0.5
+					BedLeveling.do_blocking_move_to_z(-0.5, True)
 					BedLeveling.do_m114()
 				else:  # bltouch touch bed.
-					BedLeveling.realz += 2
+					BedLeveling.realz += 1
 					BedLeveling.state = MeshLevelingState.MeshProbe
 					BedLeveling.first_run = True
-					BedLeveling.do_blocking_move_to_z(2, True)
+					BedLeveling.do_blocking_move_to_z(1, True)
 					BedLeveling.do_m114()
 
 		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing

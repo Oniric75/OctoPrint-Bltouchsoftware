@@ -36,6 +36,12 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					homing_feedrate_z=4 * 60,  # z homing speeds (mm/m)
 					z_probe_speed_fast=4 * 60,  # feedrate(mm / m)	for the first approach when double-probing
 					z_probe_speed_slow=4 * 60 / 2,  # Z_PROBE_SPEED_FAST / 2
+					min_x=10,
+					min_y=20,
+					max_x=290,
+					max_y=280,
+					min_z=0,
+					max_z=400,
 					enable=False)
 
 	def on_settings_save(self, data):
@@ -72,6 +78,13 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.max_y = custom_box["y_max"]
 			BedLeveling.min_z = custom_box["z_min"]
 			BedLeveling.max_z = custom_box["z_max"]
+		elif self._settings.get(["min_x"]) is not None:
+			BedLeveling.min_x = self._settings.get(["min_x"])
+			BedLeveling.max_x = self._settings.get(["max_x"])
+			BedLeveling.min_y = self._settings.get(["min_y"])
+			BedLeveling.max_y = self._settings.get(["max_x"])
+			BedLeveling.min_z = self._settings.get(["min_z"])
+			BedLeveling.max_z = self._settings.get(["max_z"])
 		else:
 			BedLeveling.min_x = 0
 			BedLeveling.max_x = volume["width"]
