@@ -215,6 +215,7 @@ class BedLeveling:
 			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
 			pz)
 
+	# alfawise : probleme quand le point est sous le home : alfawise retourne m114 positif au lieu de négatif
 	@staticmethod
 	def gcode_g29():
 		px = 0
@@ -234,8 +235,8 @@ class BedLeveling:
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
 			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:
-				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
-				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_STOW)
+				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+
 				BedLeveling.active = False
 				BedLeveling.printlog(BedLeveling.z_values)
 				BedLeveling.printlog("The end!")
@@ -264,7 +265,7 @@ class BedLeveling:
 					BedLeveling.do_blocking_move_to_z(2, True)
 					BedLeveling.do_m114()
 
-		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing: TODO : probleme quand le point est sous le home : alfawise retourne m114 positif au lieu de négatif
+		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing
 			if BedLeveling.first_run:
 				BedLeveling.printlog("curZ=%f, prevZ=%f, RealZ=%f" % (
 				BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.prev_position[BedLeveling.Z_AXIS],
