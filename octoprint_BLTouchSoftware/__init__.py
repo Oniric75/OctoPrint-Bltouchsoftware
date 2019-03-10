@@ -82,6 +82,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 		BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
+		BedLeveling.bltouch._setmode(2190)
 		BedLeveling.bltouch._setmode(1475)
 
 	##~~ octoprint.plugin.TemplatePlugin
