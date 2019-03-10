@@ -220,10 +220,11 @@ class BedLeveling:
 		if BedLeveling.state == MeshLevelingState.MeshStart:
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
-			if BedLeveling.probe_index > BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:  # TODO: corriger le bug du dernier point
+			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:  # TODO: corriger le bug du dernier point
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_STOW)
 				BedLeveling.active = False
+				BedLeveling.printlog(BedLeveling.z_values)
 				BedLeveling.printlog("The end!")
 				return
 			if BedLeveling.first_run:  # move the head to the next position TODO: prendre en compte l'offset du bltouch
@@ -260,6 +261,8 @@ class BedLeveling:
 				BedLeveling.printlog("index: %d | X:%f, Y:%f; Z:%f" % (
 				BedLeveling.probe_index - 1, BedLeveling.current_position[0], BedLeveling.current_position[1],
 				BedLeveling.current_position[2]))
+				BedLeveling.z_values[BedLeveling._zigzag_x_index][BedLeveling._zigzag_y_index] = \
+					BedLeveling.current_position[BedLeveling.Z_AXIS]
 				BedLeveling.do_m114()
 			# todo: store Z offset for current X Y
 
