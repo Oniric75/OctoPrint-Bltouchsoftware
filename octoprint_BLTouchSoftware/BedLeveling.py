@@ -121,14 +121,14 @@ class BedLeveling:
 		for x in range(int(grid_max_points_x)):
 			px = int(BedLeveling.min_x + x * BedLeveling.mesh_x_dist)
 			if BedLeveling.max_x - px < BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER:
-				px = BedLeveling.max_x - px - 1
+				px = BedLeveling.max_x - BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER - 1
 			BedLeveling.index_to_xpos.append(px)
 
 		BedLeveling.index_to_ypos = []
 		for y in range(int(grid_max_points_y)):
 			py = int(BedLeveling.min_y + y * BedLeveling.mesh_y_dist)
 			if BedLeveling.max_y - py < BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER:
-				py = BedLeveling.max_y - py - 1
+				py = BedLeveling.max_y - BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER - 1
 			BedLeveling.index_to_ypos.append(py)
 		BedLeveling._z_offset = 0
 		BedLeveling.reset()
