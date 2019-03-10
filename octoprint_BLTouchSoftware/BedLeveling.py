@@ -215,6 +215,8 @@ class BedLeveling:
 		py = 0
 		if BedLeveling.sleepTime > 5:
 			time.sleep(5)
+		elif BedLeveling.sleepTime < 0.5:
+			time.sleep(0.5)
 		else:
 			time.sleep(BedLeveling.sleepTime)
 
@@ -248,12 +250,17 @@ class BedLeveling:
 				else:  # bltouch touch bed.
 					BedLeveling.realz += 1
 					BedLeveling.state = MeshLevelingState.MeshProbe
+					BedLeveling.first_run = True
 					BedLeveling.do_blocking_move_to_z(1, True)
 					BedLeveling.do_m114()
 
 		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing: TODO : probleme quand le point est sous le home : alfawise retourne m114 positif au lieu de négatif
-			if BedLeveling.current_position[BedLeveling.Z_AXIS] == BedLeveling.prev_position[BedLeveling.Z_AXIS] + 1:
+			if BedLeveling.first_run:
+				BedLeveling.printlog("curZ=%f, prevZ=%f, RealZ=%f" % (
+				BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.prev_position[BedLeveling.Z_AXIS],
+				BedLeveling.realz))
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
+				BedLeveling.first_run = False
 				BedLeveling.printlog("start slow probing")
 			if not BedLeveling.bltouch.trigger:
 				BedLeveling.realz -= 0.1
