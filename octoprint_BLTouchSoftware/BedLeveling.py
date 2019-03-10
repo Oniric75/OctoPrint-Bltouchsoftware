@@ -55,7 +55,7 @@ class BedLeveling:
 	WAIT_FACTOR = 800
 
 	# PROBE (TODO: available in advanced settings)
-	Z_CLEARANCE_DEPLOY_PROBE = 10  # Z Clearance for Deploy/Stow
+	Z_CLEARANCE_DEPLOY_PROBE = 6  # Z Clearance for Deploy/Stow
 	X_PROBE_OFFSET_FROM_EXTRUDER = 10  # X offset: -left  +right  [of the nozzle]
 	Y_PROBE_OFFSET_FROM_EXTRUDER = 10  # Y offset: -front +behind [the nozzle]
 	Z_PROBE_OFFSET_FROM_EXTRUDER = 0  # Z offset: -below +above  [the nozzle]
