@@ -221,8 +221,8 @@ class BedLeveling:
 		py = 0
 		if BedLeveling.sleepTime > 5:
 			time.sleep(5)
-		elif BedLeveling.sleepTime < 0.5:
-			time.sleep(0.5)
+		elif BedLeveling.sleepTime < 1:
+			time.sleep(1)
 		else:
 			time.sleep(BedLeveling.sleepTime)
 
