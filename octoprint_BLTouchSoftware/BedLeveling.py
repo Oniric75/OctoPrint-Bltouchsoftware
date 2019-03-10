@@ -219,12 +219,16 @@ class BedLeveling:
 	def gcode_g29():
 		px = 0
 		py = 0
-		if BedLeveling.sleepTime > 5:
-			time.sleep(5)
+		if BedLeveling.sleepTime > 10:
+			BedLeveling.printlog("sleep 10...")
+			time.sleep(10)
 		elif BedLeveling.sleepTime < 1:
-			time.sleep(1)
+			BedLeveling.printlog("sleep 0.8...")
+			time.sleep(0.8)
 		else:
+			BedLeveling.printlog("sleep %f..." % BedLeveling.sleepTime)
 			time.sleep(BedLeveling.sleepTime)
+		BedLeveling.printlog("OVER")
 
 		if BedLeveling.state == MeshLevelingState.MeshStart:
 			BedLeveling.do_m114(True)
