@@ -57,7 +57,7 @@ class BedLeveling:
 	WAIT_FACTOR = 800
 
 	# PROBE (TODO: available in advanced settings)
-	Z_CLEARANCE_DEPLOY_PROBE = 6  # Z Clearance for Deploy/Stow
+	Z_CLEARANCE_DEPLOY_PROBE = 8  # Z Clearance for Deploy/Stow
 	X_PROBE_OFFSET_FROM_EXTRUDER = 10  # X offset: -left  +right  [of the nozzle]
 	Y_PROBE_OFFSET_FROM_EXTRUDER = 10  # Y offset: -front +behind [the nozzle]
 	Z_PROBE_OFFSET_FROM_EXTRUDER = 0  # Z offset: -below +above  [the nozzle]
@@ -143,7 +143,7 @@ class BedLeveling:
 		BedLeveling.state = MeshLevelingState.MeshStart
 		BedLeveling.sleepTime = 0
 		BedLeveling.zigzag_increase = True
-		BedLeveling._zigzag_x_index = 0
+		BedLeveling._zigzag_x_index = -1
 		BedLeveling._zigzag_y_index = 0
 		BedLeveling.probe_index = 0
 		BedLeveling.realz = 0
@@ -244,6 +244,13 @@ class BedLeveling:
 	def gcode_g29():
 		px = 0
 		py = 0
+
+		# Error Handling
+		if BedLeveling.realz <= -2:
+			BedLeveling.printlog("realZ <= -2 ... Erreur? stop process")
+			BedLeveling.printer.commands(["G28"])
+
+
 		if BedLeveling.sleepTime > 10:
 			BedLeveling.printlog("sleep 10...")
 			time.sleep(10)
