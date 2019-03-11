@@ -29,6 +29,8 @@ class BedLeveling:
 	z_values = None  # [grid_max_point_x][grid_max_point_y]
 	sleepTime = 0
 
+	zigzag_increase = True
+
 	state = MeshLevelingState.MeshStart
 	_zigzag_x_index = -1
 	_zigzag_y_index = -1
@@ -140,6 +142,7 @@ class BedLeveling:
 	def reset():
 		BedLeveling.state = MeshLevelingState.MeshStart
 		BedLeveling.sleepTime = 0
+		BedLeveling.zigzag_increase = True
 		BedLeveling._zigzag_x_index = 0
 		BedLeveling._zigzag_y_index = 0
 		BedLeveling.probe_index = 0
@@ -203,6 +206,27 @@ class BedLeveling:
 
 	@staticmethod
 	def zigzag(pz):
+		if BedLeveling.zigzag_increase:
+			BedLeveling._zigzag_x_index += 1
+			if BedLeveling._zigzag_x_index >= BedLeveling.grid_max_points_x:
+				BedLeveling._zigzag_x_index -= 1
+				BedLeveling._zigzag_y_index += 1
+				BedLeveling.zigzag_increase = False
+		else:
+			BedLeveling._zigzag_x_index -= 1
+			if BedLeveling._zigzag_x_index < 0:
+				BedLeveling._zigzag_x_index += 1
+				BedLeveling._zigzag_y_index += 1
+				BedLeveling.zigzag_increase = True
+
+		BedLeveling.do_blocking_move_to(
+			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
+			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
+			pz)
+
+
+	@staticmethod
+	def zigzag2(pz):
 		BedLeveling._zigzag_x_index = BedLeveling.probe_index % BedLeveling.grid_max_points_x
 		BedLeveling._zigzag_y_index = BedLeveling.probe_index / BedLeveling.grid_max_points_x
 		if BedLeveling._zigzag_y_index % 2:
@@ -286,14 +310,11 @@ class BedLeveling:
 				BedLeveling.printlog("index: %d | X:%f, Y:%f; Z:%f, RealZ:%f" % (
 					BedLeveling.probe_index - 1, BedLeveling.current_position[0], BedLeveling.current_position[1],
 					BedLeveling.current_position[2], BedLeveling.realz))
-				#	if BedLeveling.realz >= 0:
-				BedLeveling.z_values[BedLeveling._zigzag_x_index][BedLeveling._zigzag_y_index] = \
-					BedLeveling.realz - BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER  # todo: attention ici dans le cas ou on est sous le home Z ? realz < 0
-				# else:
-				#		BedLeveling.z_values[BedLeveling._zigzag_x_index][BedLeveling._zigzag_y_index] = \
-				#			BedLeveling.realz + BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER
+
+				BedLeveling.set_z(BedLeveling._zigzag_x_index, BedLeveling._zigzag_y_index,
+								  BedLeveling.realz - BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER)
 				BedLeveling.do_m114()
-				BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
+				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 
 		elif BedLeveling.state == MeshLevelingState.MeshSet:
 			pass
