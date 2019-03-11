@@ -248,7 +248,9 @@ class BedLeveling:
 		# Error Handling
 		if BedLeveling.realz <= -2:
 			BedLeveling.printlog("realZ <= -2 ... Erreur? stop process")
+			BedLeveling.bltouch.reset()
 			BedLeveling.printer.commands(["G28"])
+			return
 
 
 		if BedLeveling.sleepTime > 10:
