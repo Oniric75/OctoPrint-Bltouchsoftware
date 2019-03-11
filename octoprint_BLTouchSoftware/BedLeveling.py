@@ -246,9 +246,11 @@ class BedLeveling:
 		py = 0
 
 		# Error Handling
-		if BedLeveling.realz <= -2:
+		if BedLeveling.realz <= -3:
 			BedLeveling.printlog("realZ <= -2 ... Erreur? stop process")
-			BedLeveling.bltouch.reset()
+			BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+			BedLeveling.active = False
+			BedLeveling.printlog(BedLeveling.z_values)
 			BedLeveling.printer.commands(["G28"])
 			return
 
@@ -269,11 +271,11 @@ class BedLeveling:
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
 			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
-
 				BedLeveling.active = False
 				BedLeveling.printlog(BedLeveling.z_values)
 				BedLeveling.printlog("The end!")
 				return
+
 			if BedLeveling.first_run:
 				BedLeveling.first_run = False
 				BedLeveling.do_blocking_move_to_z(BedLeveling.Z_CLEARANCE_DEPLOY_PROBE)
