@@ -4,7 +4,7 @@ from __future__ import absolute_import
 import octoprint.plugin
 from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
 
-import re
+import re, pickle
 
 from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
 
@@ -54,7 +54,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
 		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
 		BedLeveling.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
-		BedLeveling.XY_PROBE_SPEED = int(settings.get(["xy_probe_speed"]))
+		BedLeveling.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
 
 	##~~ octoprint.plugin.StartupPlugin
 
@@ -98,6 +98,14 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		BedLeveling.bltouch._setmode(2190)
 		BedLeveling.bltouch._setmode(1475)
 
+		try:
+			with open('meshmap.obj', 'wb') as filehandler:
+				BedLeveling.z_values = pickle.load(filehandler)
+				self._logger.info("meshmap:")
+				self._logger.info(BedLeveling.z_values)
+		except IOError:
+			self._logger.info("Error: No mesh map found...")
+
 	##~~ octoprint.plugin.TemplatePlugin
 	# register settings pages
 	def get_template_configs(self):
@@ -106,8 +114,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			dict(type="sidebar", icon="arrows-alt")
 		]
 
-	@staticmethod
-	def buildreplacement(g1):
+	def buildreplacement(self, g1):
 		replstr = r"\1 \2"
 		off_z = BedLeveling.get_z(BedLeveling.current_position[BedLeveling.X_AXIS],
 								  BedLeveling.current_position[BedLeveling.Y_AXIS])
@@ -158,7 +165,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 				newg1 = cmd
 				re.sub(
 					r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E([+-]?\d+(?:\.\d+)?))?",
-					BltouchsoftwarePlugin.buildreplacement(G1), newg1)
+					self.buildreplacement(G1), newg1)
 				self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
 			else:
 				self._logger.info("Regex Fail ? cmd=\'%s\'" % cmd)
@@ -181,6 +188,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.reset()
 			BedLeveling.gcode_g29()
 			return
+		elif gcode and gcode == "M500":
+			with open('meshmap.obj', 'wb') as filehandler:
+				pickle.dump(BedLeveling.z_values, filehandler)
+
 		return cmd
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
