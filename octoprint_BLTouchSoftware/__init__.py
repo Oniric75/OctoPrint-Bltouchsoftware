@@ -78,13 +78,13 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.max_y = custom_box["y_max"]
 			BedLeveling.min_z = custom_box["z_min"]
 			BedLeveling.max_z = custom_box["z_max"]
-		elif self._settings.get(["min_x"]) is not None:
-			BedLeveling.min_x = self._settings.get(["min_x"])
-			BedLeveling.max_x = self._settings.get(["max_x"])
-			BedLeveling.min_y = self._settings.get(["min_y"])
-			BedLeveling.max_y = self._settings.get(["max_x"])
-			BedLeveling.min_z = self._settings.get(["min_z"])
-			BedLeveling.max_z = self._settings.get(["max_z"])
+		elif self._settings.get(["min_x"]) is not None and self._settings.get(["min_x"]) != "":
+			BedLeveling.min_x = int(self._settings.get(["min_x"]))
+			BedLeveling.max_x = int(self._settings.get(["max_x"]))
+			BedLeveling.min_y = int(self._settings.get(["min_y"]))
+			BedLeveling.max_y = int(self._settings.get(["max_x"]))
+			BedLeveling.min_z = int(self._settings.get(["min_z"]))
+			BedLeveling.max_z = int(self._settings.get(["max_z"]))
 		else:
 			BedLeveling.min_x = 0
 			BedLeveling.max_x = volume["width"]
@@ -105,6 +105,23 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			dict(type="settings"),
 			dict(type="sidebar", icon="arrows-alt")
 		]
+
+	@staticmethod
+	def buildreplacement(g1):
+		replstr = r"\1 \2"
+		off_z = BedLeveling.get_z(BedLeveling.current_position[BedLeveling.X_AXIS],
+								  BedLeveling.current_position[BedLeveling.Y_AXIS])
+		pz = BedLeveling.current_position[BedLeveling.Z_AXIS] + off_z
+		if g1.group(3) is not None:
+			replstr += r" X:%s" % g1.group(3)
+		if g1.group(4) is not None:
+			replstr += r" Y:%s" % g1.group(4)
+		if g1.group(5) is not None:
+			replstr += r" Z:%0.3f" % float(g1.group(5) + off_z)
+		else:
+			replstr += r"Z:%0.3f" % pz
+		replstr += r" \6"
+		return replstr
 
 	##~~ Softwareupdate hook
 
@@ -131,11 +148,26 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			# BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
 			BedLeveling.bltouch._setmode(2190)
 		elif BedLeveling.available and gcode and (gcode == "G1" or gcode == "G0"):
-			self._logger.info("TRIGGER G0/G1: cmd=\'%s\'" % cmd)
+			# improvement doable ? look into void plan_arc in marlin_main.cpp (planner.apply_leveling)
+			G1 = re.match(
+				r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E([+-]?\d+(?:\.\d+)?))?",
+				cmd, re.IGNORECASE)
+			self._logger.info("TRIGGER G0/G1...")
+			if G1:
+				BedLeveling.set_current_pos(G1.group(3), G1.group(4), G1.group(5))
+				newg1 = cmd
+				re.sub(
+					r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E([+-]?\d+(?:\.\d+)?))?",
+					BedLeveling.buildreplacement(G1), newg1)
+				self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
+			else:
+				self._logger.info("Regex Fail ? cmd=\'%s\'" % cmd)
+
 		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
 			self._logger.info("Detect G28")
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
+			BedLeveling.set_current_pos(px, py, 0)  # TODO: not sure ?
 			return ["G91",
 					"G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED,
 					"G90",

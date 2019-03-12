@@ -85,7 +85,19 @@ class BedLeveling:
 			BedLeveling.prev_position = [0, 0, 0]
 		else:
 			BedLeveling.prev_position = BedLeveling.current_position
-		BedLeveling.current_position = [px, py, pz]
+		if px is None:
+			x = BedLeveling.prev_position[BedLeveling.X_AXIS]
+		else:
+			x = px
+		if py is None:
+			y = BedLeveling.prev_position[BedLeveling.Y_AXIS]
+		else:
+			y = py
+		if pz is None:
+			z = BedLeveling.prev_position[BedLeveling.Z_AXIS]
+		else:
+			z = pz
+		BedLeveling.current_position = [x, y, z]
 
 	# ~~  BLTOUCH Software
 
@@ -216,22 +228,10 @@ class BedLeveling:
 			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
 			pz)
 
-	@staticmethod
-	def zigzag2(pz):
-		BedLeveling._zigzag_x_index = BedLeveling.probe_index % BedLeveling.grid_max_points_x
-		BedLeveling._zigzag_y_index = BedLeveling.probe_index / BedLeveling.grid_max_points_x
-		if BedLeveling._zigzag_y_index % 2:
-			BedLeveling.zigzag_x_index = BedLeveling.grid_max_points_x - 1 - BedLeveling.probe_index
-		BedLeveling.printlog("zigX=%d, zagY=%d, Z=%d" % (
-			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
-			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER, pz))
-		BedLeveling.do_blocking_move_to(
-			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
-			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
-			pz)
 
 	# inline void gcode_g29() > marlin_main.cpp line 4495
 	# alfawise : probleme quand le point est sous le home : alfawise retourne m114 positif au lieu de négatif
+	# todo: improve accuracy : do twice the same point and do it again until getting twice the same result
 	@staticmethod
 	def gcode_g29():
 		px = 0
@@ -246,7 +246,8 @@ class BedLeveling:
 			BedLeveling.printer.commands(["G28"])
 			return
 
-		# wait for the move to be done ... #todo : improve this part. make sure the sleep in right ... maybe the g29 should be threaded ?
+		# todo : improve this part. make sure the sleep in right ... maybe the g29 should be threaded ?
+		# wait for the move to be done ...
 		if BedLeveling.sleepTime > 10:
 			BedLeveling.printlog("sleep 10...")
 			time.sleep(10)
