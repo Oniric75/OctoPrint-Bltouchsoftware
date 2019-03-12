@@ -130,7 +130,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			self._logger.info("BLTOUCH_RESET")
 			# BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
 			BedLeveling.bltouch._setmode(2190)
-		elif cmd and (cmd == "G1" or cmd == "G0"):
+		elif BedLeveling.available and cmd and (cmd == "G1" or cmd == "G0"):
 			self._logger.info("TRIGGER G0/G1: cmd=\'%s\'" % cmd)
 		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
 			self._logger.info("Detect G28")
