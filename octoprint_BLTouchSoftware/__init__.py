@@ -118,6 +118,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 	def buildreplacement(self, g1):
 		replstr = r"\1"
+		self._logger.info("curZ: %f, get_z:%f" % (BedLeveling.current_position[BedLeveling.Z_AXIS],
+												  BedLeveling.get_z(BedLeveling.current_position[BedLeveling.X_AXIS],
+																	BedLeveling.current_position[BedLeveling.Y_AXIS])))
+
 		off_z = float(BedLeveling.get_z(BedLeveling.current_position[BedLeveling.X_AXIS],
 										BedLeveling.current_position[BedLeveling.Y_AXIS]))
 		pz = BedLeveling.current_position[BedLeveling.Z_AXIS] + off_z
@@ -130,7 +134,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		if g1.group(5) is not None:
 			replstr += r" Z:%0.3f" % (float(g1.group(5)) + off_z)
 		else:
-			replstr += r"Z:%0.3f" % pz
+			replstr += r" Z:%0.3f" % pz
 		if g1.group(6) is not None:
 			replstr += r" %s" % g1.group(6)
 		if g1.group(7) is not None:
