@@ -337,12 +337,12 @@ class BedLeveling:
 
 	@staticmethod
 	def cell_index_x(x):
-		cx = (x - BedLeveling.min_x) * (1.0 / BedLeveling.mesh_x_dist)
+		cx = (float(x) - BedLeveling.min_x) * (1.0 / BedLeveling.mesh_x_dist)
 		return BedLeveling.constrain(cx, 0, BedLeveling.grid_max_points_x - 2)
 
 	@staticmethod
 	def cell_index_y(y):
-		cy = (y - BedLeveling.min_y) * (1.0 / BedLeveling.mesh_y_dist)
+		cy = (float(y) - BedLeveling.min_y) * (1.0 / BedLeveling.mesh_y_dist)
 		return BedLeveling.constrain(cy, 0, BedLeveling.grid_max_points_y - 2)
 
 	@staticmethod
