@@ -117,10 +117,12 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		]
 
 	def buildreplacement(self, g1):
-		replstr = r"\1 \2"
+		replstr = r"\1"
 		off_z = BedLeveling.get_z(BedLeveling.current_position[BedLeveling.X_AXIS],
 								  BedLeveling.current_position[BedLeveling.Y_AXIS])
 		pz = BedLeveling.current_position[BedLeveling.Z_AXIS] + off_z
+		if g1.group(2) is not None:
+			replstr += r" %s" % g1.group(2)
 		if g1.group(3) is not None:
 			replstr += r" X:%s" % g1.group(3)
 		if g1.group(4) is not None:
@@ -129,7 +131,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			replstr += r" Z:%0.3f" % float(g1.group(5) + off_z)
 		else:
 			replstr += r"Z:%0.3f" % pz
-		replstr += r" \6"
+		if g1.group(6) is not None:
+			replstr += r" %s" % g1.group(6)
+		if g1.group(7) is not None:
+			replstr += r" %s" % g1.group(7)
 		return replstr
 
 	##~~ Softwareupdate hook
@@ -159,14 +164,14 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		elif BedLeveling.available and gcode and (gcode == "G1" or gcode == "G0"):
 			# improvement doable ? look into void plan_arc in marlin_main.cpp (planner.apply_leveling)
 			G1 = re.match(
-				r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E([+-]?\d+(?:\.\d+)?))?",
+				r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
 				cmd, re.IGNORECASE)
 			self._logger.info("TRIGGER G0/G1...")
 			if G1:
 				BedLeveling.set_current_pos(G1.group(3), G1.group(4), G1.group(5))
 				newg1 = cmd
 				re.sub(
-					r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E([+-]?\d+(?:\.\d+)?))?",
+					r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
 					self.buildreplacement(G1), newg1)
 				self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
 			else:
