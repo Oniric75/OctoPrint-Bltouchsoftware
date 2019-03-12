@@ -158,7 +158,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 				newg1 = cmd
 				re.sub(
 					r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E([+-]?\d+(?:\.\d+)?))?",
-					BedLeveling.buildreplacement(G1), newg1)
+					BltouchsoftwarePlugin.buildreplacement(G1), newg1)
 				self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
 			else:
 				self._logger.info("Regex Fail ? cmd=\'%s\'" % cmd)

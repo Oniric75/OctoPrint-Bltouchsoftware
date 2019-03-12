@@ -246,7 +246,7 @@ class BedLeveling:
 			BedLeveling.printer.commands(["G28"])
 			return
 
-		# todo : improve this part. make sure the sleep in right ... maybe the g29 should be threaded ?
+		# todo : improve this part. make sure the sleep is right ... maybe the g29 should be threaded ?
 		# wait for the move to be done ...
 		if BedLeveling.sleepTime > 10:
 			BedLeveling.printlog("sleep 10...")
