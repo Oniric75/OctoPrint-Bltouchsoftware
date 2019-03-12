@@ -30,7 +30,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					z_clearance_deploy_probe=10,  # z clearance for deploy/stow
 					x_probe_offset_from_extruder=46,  # x offset: -left  +right  [of the nozzle]
 					y_probe_offset_from_extruder=22,  # y offset: -front +behind [the nozzle]
-					z_probe_offset_from_extruder=0.45,  # z offset: -below +above  [the nozzle]
+					z_probe_offset_from_extruder=-0.45,  # z offset: -below +above  [the nozzle]
 					min_probe_edge=10,
 					xy_probe_speed=8000,  # x and y axis travel speed(mm / m) between	probes
 					homing_feedrate_z=4 * 60,  # z homing speeds (mm/m)
@@ -106,12 +106,33 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			dict(type="sidebar", icon="arrows-alt")
 		]
 
+	##~~ Softwareupdate hook
+
 	##~~ G28 & G29Hooker
 	#  G28: safe homing: home XY then go to the center and Z home
 	#  G28 Z : safe Z homing : go to the center and Z home
 	#  G29 : start probing
 	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
-		if cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
+
+		if cmd and cmd == "M280 P0 S10":
+			self._logger.info("BLTOUCH_DEPLOY")
+			# BedLeveling.bltouch.probemode(10)  # BLTOUCH_DEPLOY
+			BedLeveling.bltouch._setmode(650)
+		elif cmd and cmd == "M280 P0 S90":
+			self._logger.info("BLTOUCH_STOW")
+			# BedLeveling.bltouch.probemode(90)  # BLTOUCH_STOW
+			BedLeveling.bltouch._setmode(1475)
+		elif cmd and cmd == "M280 P0 S120":
+			self._logger.info("BLTOUCH_SELFTEST")
+			# BedLeveling.bltouch.probemode(120)  # BLTOUCH_SELFTEST
+			BedLeveling.bltouch._setmode(1780)
+		elif cmd and cmd == "M280 P0 S160":
+			self._logger.info("BLTOUCH_RESET")
+			# BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
+			BedLeveling.bltouch._setmode(2190)
+		elif cmd and (cmd == "G1" or cmd == "G0"):
+			self._logger.info("TRIGGER G0/G1: cmd=\'%s\'" % cmd)
+		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
 			self._logger.info("Detect G28")
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
@@ -128,22 +149,6 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.reset()
 			BedLeveling.gcode_g29()
 			return
-		elif cmd and cmd == "M280 P0 S10":
-			self._logger.info("BLTOUCH_DEPLOY")
-			# BedLeveling.bltouch.probemode(10)  # BLTOUCH_DEPLOY
-			BedLeveling.bltouch._setmode(650)
-		elif cmd and cmd == "M280 P0 S90":
-			self._logger.info("BLTOUCH_STOW")
-			# BedLeveling.bltouch.probemode(90)  # BLTOUCH_STOW
-			BedLeveling.bltouch._setmode(1475)
-		elif cmd and cmd == "M280 P0 S120":
-			self._logger.info("BLTOUCH_SELFTEST")
-			# BedLeveling.bltouch.probemode(120)  # BLTOUCH_SELFTEST
-			BedLeveling.bltouch._setmode(1780)
-		elif cmd and cmd == "M280 P0 S160":
-			self._logger.info("BLTOUCH_RESET")
-			# BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
-			BedLeveling.bltouch._setmode(2190)
 		return cmd
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
@@ -158,13 +163,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					BedLeveling.realz = 0
 					BedLeveling.state = MeshLevelingState.MeshNext
 				BedLeveling.gcode_g29()
-		# else:
-		#	self._logger.info("no match m114: %s" % line)
 		return line
-
-	##~~ AutoBedLeveling Probe
-
-	##~~ Softwareupdate hook
 
 	def get_update_information(self):
 		# Define the configuration for your plugin to use with the Software Update

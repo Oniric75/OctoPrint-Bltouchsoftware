@@ -25,8 +25,8 @@ class BedLeveling:
 	mesh_x_dist = 0
 	mesh_y_dist = 0
 	realz = -1  # keep track of the z home reference
-	z_offset = 0
 	z_values = None  # [grid_max_point_x][grid_max_point_y]
+	available = False  # used to know if the mesh map is built and available
 	sleepTime = 0
 
 	zigzag_increase = True
@@ -56,7 +56,7 @@ class BedLeveling:
 	Z_PROBE_SPEED_SLOW = Z_PROBE_SPEED_FAST / 2  # Feedrate(mm / m)	for the "accurate" probe of each point
 	WAIT_FACTOR = 800
 
-	# PROBE (TODO: available in advanced settings)
+	# PROBE (Set &  TODO: Available in advanced settings)
 	Z_CLEARANCE_DEPLOY_PROBE = 8  # Z Clearance for Deploy/Stow
 	X_PROBE_OFFSET_FROM_EXTRUDER = 10  # X offset: -left  +right  [of the nozzle]
 	Y_PROBE_OFFSET_FROM_EXTRUDER = 10  # Y offset: -front +behind [the nozzle]
@@ -88,11 +88,6 @@ class BedLeveling:
 		BedLeveling.current_position = [px, py, pz]
 
 	# ~~  BLTOUCH Software
-
-	# Use for bed leveling
-	@staticmethod
-	def set_z_offset(pz):
-		BedLeveling.z_offset = pz
 
 	@staticmethod
 	def set_z(px, py, z):
@@ -132,7 +127,6 @@ class BedLeveling:
 			if BedLeveling.max_y - py < BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER:
 				py = BedLeveling.max_y - BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER - 1
 			BedLeveling.index_to_ypos.append(py)
-		BedLeveling._z_offset = 0
 		BedLeveling.reset()
 		BedLeveling.printlog(BedLeveling.index_to_xpos)
 		BedLeveling.printlog(BedLeveling.index_to_ypos)
@@ -151,11 +145,10 @@ class BedLeveling:
 		BedLeveling.z_values = None
 		BedLeveling.z_values = [[0 for y in range(BedLeveling.grid_max_points_y)] for x in
 								range(BedLeveling.grid_max_points_x)]
-
+		BedLeveling.available = False
 	#	if BedLeveling.bltouch is not None:
 	#		BedLeveling.bltouch.cleanup()
 	#	bltouch = BLTouchGPIO()
-
 
 	@staticmethod
 	def do_blocking_move_to_z(pz, relative=False, speed=None):
@@ -195,7 +188,6 @@ class BedLeveling:
 
 	# BedLeveling.printlog("sleepTime:%f" % BedLeveling.sleepTime)
 
-
 	@staticmethod
 	def do_m114(home=False):
 		if home:
@@ -224,7 +216,6 @@ class BedLeveling:
 			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
 			pz)
 
-
 	@staticmethod
 	def zigzag2(pz):
 		BedLeveling._zigzag_x_index = BedLeveling.probe_index % BedLeveling.grid_max_points_x
@@ -232,13 +223,14 @@ class BedLeveling:
 		if BedLeveling._zigzag_y_index % 2:
 			BedLeveling.zigzag_x_index = BedLeveling.grid_max_points_x - 1 - BedLeveling.probe_index
 		BedLeveling.printlog("zigX=%d, zagY=%d, Z=%d" % (
-		BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
-		BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER, pz))
+			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
+			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER, pz))
 		BedLeveling.do_blocking_move_to(
 			BedLeveling.index_to_xpos[BedLeveling._zigzag_x_index] + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER,
 			BedLeveling.index_to_ypos[BedLeveling._zigzag_y_index] + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER,
 			pz)
 
+	# inline void gcode_g29() > marlin_main.cpp line 4495
 	# alfawise : probleme quand le point est sous le home : alfawise retourne m114 positif au lieu de négatif
 	@staticmethod
 	def gcode_g29():
@@ -254,7 +246,7 @@ class BedLeveling:
 			BedLeveling.printer.commands(["G28"])
 			return
 
-
+		# wait for the move to be done ... #todo : improve this part. make sure the sleep in right ... maybe the g29 should be threaded ?
 		if BedLeveling.sleepTime > 10:
 			BedLeveling.printlog("sleep 10...")
 			time.sleep(10)
@@ -272,6 +264,7 @@ class BedLeveling:
 			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 				BedLeveling.active = False
+				BedLeveling.available = True
 				BedLeveling.printlog(BedLeveling.z_values)
 				BedLeveling.printlog("The end!")
 				return
@@ -289,7 +282,7 @@ class BedLeveling:
 					BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
 				if not BedLeveling.bltouch.trigger:
 					BedLeveling.printlog("Go Down FAST: M114z=%f, realZ:%f" % (
-					BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.realz))
+						BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.realz))
 					BedLeveling.realz -= 0.5
 					BedLeveling.do_blocking_move_to_z(-0.5, True)
 					BedLeveling.do_m114()
@@ -303,8 +296,8 @@ class BedLeveling:
 		elif BedLeveling.state == MeshLevelingState.MeshProbe:  # slow probing
 			if BedLeveling.first_run:
 				BedLeveling.printlog("curZ=%f, prevZ=%f, RealZ=%f" % (
-				BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.prev_position[BedLeveling.Z_AXIS],
-				BedLeveling.realz))
+					BedLeveling.current_position[BedLeveling.Z_AXIS], BedLeveling.prev_position[BedLeveling.Z_AXIS],
+					BedLeveling.realz))
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
 				BedLeveling.first_run = False
 				BedLeveling.printlog("start slow probing")
@@ -323,7 +316,7 @@ class BedLeveling:
 					BedLeveling.current_position[2], BedLeveling.realz))
 
 				BedLeveling.set_z(BedLeveling._zigzag_x_index, BedLeveling._zigzag_y_index,
-								  BedLeveling.realz - BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER)
+								  BedLeveling.realz + BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER)
 				BedLeveling.do_m114()
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 
@@ -335,4 +328,48 @@ class BedLeveling:
 		elif BedLeveling.state == MeshLevelingState.MeshReset:
 			BedLeveling.reset()
 
-# inline void gcode_g29() > marlin_main.cpp line 4495
+	##~~  using mesh map build with g29 to improve Z accuracy
+	#  based on marlin : mesh_bed_leveling.h line 94 to 115
+	@staticmethod
+	def constrain(val, min_val, max_val):
+		return min(max_val, max(min_val, val))
+
+	@staticmethod
+	def cell_index_x(x):
+		cx = (x - BedLeveling.min_x) * (1.0 / BedLeveling.mesh_x_dist)
+		return BedLeveling.constrain(cx, 0, BedLeveling.grid_max_points_x - 2)
+
+	@staticmethod
+	def cell_index_y(y):
+		cy = (y - BedLeveling.min_y) * (1.0 / BedLeveling.mesh_y_dist)
+		return BedLeveling.constrain(cy, 0, BedLeveling.grid_max_points_y - 2)
+
+	@staticmethod
+	def calc_z0(a0, a1, z1, a2, z2):
+		delta_z = (1.0 * (z2 - z1)) / (a2 - a1)
+		delta_a = a0 - a1
+		return z1 + delta_a * delta_z
+
+	@staticmethod
+	def get_z(x0, y0):
+		cx = BedLeveling.cell_index_x(x0)
+		cy = BedLeveling.cell_index_y(y0)
+
+		z1 = BedLeveling.calc_z0(x0,
+								 BedLeveling.index_to_xpos[cx],
+								 BedLeveling.z_values[cx][cy],
+								 BedLeveling.index_to_xpos[cx + 1],
+								 BedLeveling.z_values[cx + 1][cy])
+		z2 = BedLeveling.calc_z0(x0,
+								 BedLeveling.index_to_xpos[cx],
+								 BedLeveling.z_values[cx][cy + 1],
+								 BedLeveling.index_to_xpos[cx + 1],
+								 BedLeveling.z_values[cx + 1][cy + 1])
+
+		z0 = BedLeveling.calc_z0(y0,
+								 BedLeveling.index_to_ypos[cy],
+								 z1,
+								 BedLeveling.index_to_ypos[cy + 1],
+								 z2)
+
+		return BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER + z0
