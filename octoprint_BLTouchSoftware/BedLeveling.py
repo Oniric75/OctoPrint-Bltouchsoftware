@@ -97,7 +97,7 @@ class BedLeveling:
 			z = BedLeveling.prev_position[BedLeveling.Z_AXIS]
 		else:
 			z = pz
-		BedLeveling.current_position = [x, y, z]
+		BedLeveling.current_position = [float(x), float(y), float(z)]
 
 	# ~~  BLTOUCH Software
 
