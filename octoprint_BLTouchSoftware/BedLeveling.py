@@ -348,7 +348,7 @@ class BedLeveling:
 	@staticmethod
 	def calc_z0(a0, a1, z1, a2, z2):
 		delta_z = (1.0 * (z2 - z1)) / (a2 - a1)
-		delta_a = a0 - a1
+		delta_a = float(a0) - float(a1)
 		return z1 + delta_a * delta_z
 
 	@staticmethod
