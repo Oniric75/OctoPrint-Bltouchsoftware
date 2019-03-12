@@ -99,7 +99,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		BedLeveling.bltouch._setmode(1475)
 
 		try:
-			with open('meshmap.obj', 'wb') as filehandler:
+			with open('~/meshmap.obj', 'wb') as filehandler:
 				BedLeveling.z_values = pickle.load(filehandler)
 				self._logger.info("meshmap:")
 				self._logger.info(BedLeveling.z_values)
@@ -189,7 +189,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.gcode_g29()
 			return
 		elif gcode and gcode == "M500":
-			with open('meshmap.obj', 'wb') as filehandler:
+			with open('~/meshmap.obj', 'wb') as filehandler:
 				pickle.dump(BedLeveling.z_values, filehandler)
 
 		return cmd
