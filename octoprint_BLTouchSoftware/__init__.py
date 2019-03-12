@@ -112,10 +112,9 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	#  G28: safe homing: home XY then go to the center and Z home
 	#  G28 Z : safe Z homing : go to the center and Z home
 	#  G29 : start probing
-	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, subcode=None, tags=None, *args, **kwargs):
+	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
 
 		if cmd and cmd == "M280 P0 S10":
-			self._logger.info("gcode=\'%s\', subcode=\'%s\'" % (gcode, subcode))
 			self._logger.info("BLTOUCH_DEPLOY")
 			# BedLeveling.bltouch.probemode(10)  # BLTOUCH_DEPLOY
 			BedLeveling.bltouch._setmode(650)
@@ -131,7 +130,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			self._logger.info("BLTOUCH_RESET")
 			# BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
 			BedLeveling.bltouch._setmode(2190)
-		elif BedLeveling.available and cmd and (cmd == "G1" or cmd == "G0"):
+		elif BedLeveling.available and gcode and (gcode == "G1" or gcode == "G0"):
 			self._logger.info("TRIGGER G0/G1: cmd=\'%s\'" % cmd)
 		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
 			self._logger.info("Detect G28")
