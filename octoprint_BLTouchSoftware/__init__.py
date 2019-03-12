@@ -104,6 +104,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 				BedLeveling.z_values = pickle.load(filehandler)
 				self._logger.info("meshmap:")
 				self._logger.info(BedLeveling.z_values)
+				BedLeveling.available = True
 		except IOError:
 			self._logger.info("Error: No mesh map found...")
 
