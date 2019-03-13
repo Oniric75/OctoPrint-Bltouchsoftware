@@ -28,10 +28,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	def get_settings_defaults(self):
 		return dict(grid_max_points_x=3,
 					grid_max_points_y=3,
-					z_clearance_deploy_probe=10,  # z clearance for deploy/stow
+					z_clearance_deploy_probe=8,  # z clearance for deploy/stow
 					x_probe_offset_from_extruder=46,  # x offset: -left  +right  [of the nozzle]
 					y_probe_offset_from_extruder=22,  # y offset: -front +behind [the nozzle]
-					z_probe_offset_from_extruder=-0.45,  # z offset: -below +above  [the nozzle]
+					z_probe_offset_from_extruder=-0.5,  # z offset: -below +above  [the nozzle]
 					min_probe_edge=10,
 					xy_probe_speed=8000,  # x and y axis travel speed(mm / m) between	probes
 					homing_feedrate_z=4 * 60,  # z homing speeds (mm/m)
