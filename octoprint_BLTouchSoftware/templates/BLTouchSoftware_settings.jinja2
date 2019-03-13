@@ -11,6 +11,26 @@
             <input type="number" class="input-block-level"
                    data-bind="value: settingsViewModel.settings.plugins.BLTouchSoftware.grid_max_points_y">
         </div>
+        <label class="control-label">{{ _('z clearance to deploy probe') }}</label>
+        <div class="controls">
+            <input type="number" class="input-block-level"
+                   data-bind="value: settingsViewModel.settings.plugins.BLTouchSoftware.z_clearance_deploy_probe">
+        </div>
+        <label class="control-label">{{ _('x_probe_offset_from_extruder') }}</label>
+        <div class="controls">
+            <input type="number" class="input-block-level"
+                   data-bind="value: settingsViewModel.settings.plugins.BLTouchSoftware.x_probe_offset_from_extruder">
+        </div>
+        <label class="control-label">{{ _('y_probe_offset_from_extruder') }}</label>
+        <div class="controls">
+            <input type="number" class="input-block-level"
+                   data-bind="value: settingsViewModel.settings.plugins.BLTouchSoftware.y_probe_offset_from_extruder">
+        </div>
+        <label class="control-label">{{ _('z_probe_offset_from_extruder') }}</label>
+        <div class="controls">
+            <input type="number" class="input-block-level"
+                   data-bind="value: settingsViewModel.settings.plugins.BLTouchSoftware.z_probe_offset_from_extruder">
+        </div>
     </div>
 </form>
 </div>
