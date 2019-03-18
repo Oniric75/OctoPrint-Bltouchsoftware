@@ -28,7 +28,7 @@ class BedLeveling:
 	z_values = None  # [grid_max_point_x][grid_max_point_y]
 	available = False  # used to know if the mesh map is built and available
 	sleepTime = 0
-
+	relative = False
 	zigzag_increase = True
 
 	state = MeshLevelingState.MeshStart
@@ -85,18 +85,33 @@ class BedLeveling:
 			BedLeveling.prev_position = [0, 0, 0]
 		else:
 			BedLeveling.prev_position = BedLeveling.current_position
-		if px is None:
-			x = BedLeveling.prev_position[BedLeveling.X_AXIS]
+
+		if BedLeveling.relative:
+			if px:
+				x = BedLeveling.prev_position[BedLeveling.X_AXIS] + px
+			else:
+				x = BedLeveling.prev_position[BedLeveling.X_AXIS]
+			if py:
+				y = BedLeveling.prev_position[BedLeveling.Y_AXIS] + py
+			else:
+				y = BedLeveling.prev_position[BedLeveling.Y_AXIS]
+			if pz:
+				z = BedLeveling.prev_position[BedLeveling.Z_AXIS] + pz
+			else:
+				z = BedLeveling.prev_position[BedLeveling.Z_AXIS]
 		else:
-			x = px
-		if py is None:
-			y = BedLeveling.prev_position[BedLeveling.Y_AXIS]
-		else:
-			y = py
-		if pz is None:
-			z = BedLeveling.prev_position[BedLeveling.Z_AXIS]
-		else:
-			z = pz
+			if px is None:
+				x = BedLeveling.prev_position[BedLeveling.X_AXIS]
+			else:
+				x = px
+			if py is None:
+				y = BedLeveling.prev_position[BedLeveling.Y_AXIS]
+			else:
+				y = py
+			if pz is None:
+				z = BedLeveling.prev_position[BedLeveling.Z_AXIS]
+			else:
+				z = pz
 		BedLeveling.current_position = [float(x), float(y), float(z)]
 
 	# ~~  BLTOUCH Software

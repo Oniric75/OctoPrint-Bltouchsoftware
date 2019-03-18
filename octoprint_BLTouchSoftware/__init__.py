@@ -16,6 +16,9 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	def __init__(self):
 		super(BltouchsoftwarePlugin, self).__init__()
 		self.m500path = "/home/pi/meshmap.obj"
+		self.G1regex = re.compile(
+			r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
+			re.IGNORECASE)
 
 
 	##~~ AssetPlugin mixin
@@ -148,8 +151,11 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	#  G28 Z : safe Z homing : go to the center and Z home
 	#  G29 : start probing
 	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
-
-		if cmd and cmd == "M280 P0 S10":
+		if gcode and gcode == "G90":
+			BedLeveling.relative = False
+		elif gcode and gcode == "G91":
+			BedLeveling.relative = True
+		elif cmd and cmd == "M280 P0 S10":
 			self._logger.info("BLTOUCH_DEPLOY")
 			# BedLeveling.bltouch.probemode(10)  # BLTOUCH_DEPLOY
 			BedLeveling.bltouch._setmode(650)
@@ -167,17 +173,16 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.bltouch._setmode(2190)
 		elif BedLeveling.available and gcode and (gcode == "G1" or gcode == "G0"):
 			# improvement doable ? look into void plan_arc in marlin_main.cpp (planner.apply_leveling)
-			G1 = re.match(
-				r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
-				cmd, re.IGNORECASE)
+			G1 = self.G1regex.match(cmd)
 			self._logger.info("TRIGGER G0/G1...")
+
 			if G1:
 				BedLeveling.set_current_pos(G1.group(3), G1.group(4), G1.group(5))
-				newg1 = cmd
-				re.sub(
-					r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
-					self.buildreplacement(G1), newg1)
-				self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
+				if BedLeveling.relative is False:
+					newg1 = self.G1regex.sub(self.buildreplacement(G1), cmd)
+					self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
+				else:
+					self._logger.info("Relative mode : auto leveling off")
 			else:
 				self._logger.info("Regex Fail ? cmd=\'%s\'" % cmd)
 
@@ -185,7 +190,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			self._logger.info("Detect G28")
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			BedLeveling.set_current_pos(px, py, 0)  # TODO: not sure ?
+			BedLeveling.set_current_pos(px, py, 0)
 			return ["G91",
 					"G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED,
 					"G90",
