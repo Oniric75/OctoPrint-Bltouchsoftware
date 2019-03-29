@@ -88,15 +88,15 @@ class BedLeveling:
 
 		if BedLeveling.relative:
 			if px:
-				x = BedLeveling.prev_position[BedLeveling.X_AXIS] + px
+				x = BedLeveling.prev_position[BedLeveling.X_AXIS] + float(px)
 			else:
 				x = BedLeveling.prev_position[BedLeveling.X_AXIS]
 			if py:
-				y = BedLeveling.prev_position[BedLeveling.Y_AXIS] + py
+				y = BedLeveling.prev_position[BedLeveling.Y_AXIS] + float(py)
 			else:
 				y = BedLeveling.prev_position[BedLeveling.Y_AXIS]
 			if pz:
-				z = BedLeveling.prev_position[BedLeveling.Z_AXIS] + pz
+				z = BedLeveling.prev_position[BedLeveling.Z_AXIS] + float(pz)
 			else:
 				z = BedLeveling.prev_position[BedLeveling.Z_AXIS]
 		else:
