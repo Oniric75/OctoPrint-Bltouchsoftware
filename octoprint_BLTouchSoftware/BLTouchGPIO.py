@@ -87,13 +87,13 @@ class BLTouchGPIO:
 			self._setmode(2190)
 
 	def callback_bltouch_zmin(self, channel):
-		time.sleep(0.01)
+		time.sleep(0.001)
 		if GPIO.input(channel):
 			self.trigger = True
 			self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
 
 	def callback_switch_zmin(self, channel):
-		time.sleep(0.01)
+		time.sleep(0.001)
 		if not GPIO.input(channel):
 			self.printlog("SWITCH TRIGGER! channel=%s" % channel)
 	# self.send_zmin_to_printer(True)
