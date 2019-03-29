@@ -15,15 +15,25 @@ class BLTouchState:
 class BLTouchGPIO:
 
 	def __init__(self):
-		self.GPIO_Zmin = 11
-		self.GPIO_Control = 12
+		self.GPIO_BLTouch_Zmin = 11
+		self.GPIO_BLTouch_Control = 12
+		self.GPIO_Alfawise_Zmin = 13
+		self.GPIO_Switch_Zmin = 18
+
 		self.trigger = False
 		GPIO.setmode(GPIO.BOARD)
-		GPIO.setup(self.GPIO_Zmin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.add_event_detect(self.GPIO_Zmin, GPIO.RISING, callback=self.callback, bouncetime=200)
 
-		GPIO.setup(self.GPIO_Control, GPIO.OUT)
-		self.bltouch = GPIO.PWM(self.GPIO_Control, 50)
+		# callback_bltouch_zmin when bltouch touch the bed
+		GPIO.setup(self.GPIO_BLTouch_Zmin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.add_event_detect(self.GPIO_BLTouch_Zmin, GPIO.RISING, callback=self.callback_bltouch_zmin, bouncetime=200)
+
+		# callback_bltouch_zmin when the zswitch is trigger
+		GPIO.setup(self.GPIO_Switch_Zmin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.add_event_detect(self.GPIO_Switch_Zmin, GPIO.RISING, callback=self.callback_switch_zmin, bouncetime=200)
+
+		# control of bltouch
+		GPIO.setup(self.GPIO_BLTouch_Control, GPIO.OUT)
+		self.bltouch = GPIO.PWM(self.GPIO_BLTouch_Control, 50)
 		self.bltouch.start(0)
 		self._logger = None
 
@@ -39,11 +49,11 @@ class BLTouchGPIO:
 			self._logger.debug(log)
 
 	def _setmode(self, PW=1475):
-		GPIO.output(self.GPIO_Control, True)
+		GPIO.output(self.GPIO_BLTouch_Control, True)
 		duty = (PW / (0.02 * 1000 * 1000)) * 100
 		self.bltouch.ChangeDutyCycle(duty)
 		time.sleep(1)
-		GPIO.output(self.GPIO_Control, False)
+		GPIO.output(self.GPIO_BLTouch_Control, False)
 
 	'''
 	def _setangle(self, Angle):
@@ -70,12 +80,16 @@ class BLTouchGPIO:
 		elif mode == BLTouchState.BLTOUCH_RESET:
 			self._setmode(2190)
 
-	def callback(self, channel):
+	def callback_bltouch_zmin(self, channel):
 		self.trigger = True
 		self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
+
+	def callback_switch_zmin(self, channel):
+		self.printlog("SWITCH TRIGGER! channel=%s" % channel)
+
 
 	def cleanup(self):
 		self.bltouch.stop()
 		self.bltouch.cleanup()
-		GPIO.remove_event_detect(self.GPIO_Zmin)
+		GPIO.remove_event_detect(self.GPIO_BLTouch_Zmin)
 		pass
