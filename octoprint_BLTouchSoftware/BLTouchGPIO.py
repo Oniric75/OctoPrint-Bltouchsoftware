@@ -21,6 +21,8 @@ class BLTouchGPIO:
 		self.GPIO_Switch_Zmin = 18
 
 		self.trigger = False
+
+		GPIO.cleanup()
 		GPIO.setmode(GPIO.BOARD)
 
 		# callback_bltouch_zmin when bltouch touch the bed
