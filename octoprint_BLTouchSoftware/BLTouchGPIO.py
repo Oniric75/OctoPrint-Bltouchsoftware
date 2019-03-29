@@ -23,6 +23,8 @@ class BLTouchGPIO:
 		self.trigger = False
 
 		GPIO.cleanup()
+		GPIO.remove_event_detect(self.GPIO_BLTouch_Zmin)
+		GPIO.remove_event_detect(self.GPIO_Switch_Zmin)
 		GPIO.setmode(GPIO.BOARD)
 
 		# callback_bltouch_zmin when bltouch touch the bed
