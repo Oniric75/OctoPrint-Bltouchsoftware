@@ -27,7 +27,7 @@ class BLTouchGPIO:
 
 		# callback_bltouch_zmin when bltouch touch the bed
 		GPIO.setup(self.GPIO_BLTouch_Zmin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.add_event_detect(self.GPIO_BLTouch_Zmin, GPIO.RISING, callback=self.callback_bltouch_zmin, bouncetime=200)
+		GPIO.add_event_detect(self.GPIO_BLTouch_Zmin, GPIO.RISING, callback=self.callback_bltouch_zmin, bouncetime=75)
 
 		# callback_bltouch_zmin when the zswitch is trigger
 		GPIO.setup(self.GPIO_Switch_Zmin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -88,7 +88,7 @@ class BLTouchGPIO:
 
 	def callback_bltouch_zmin(self, channel):
 			self.trigger = True
-			self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
+			self.printlog("BLTOUCH TRIGGER! channel=%s, state=%s" % (channel, GPIO.input(channel)))
 
 	def callback_switch_zmin(self, channel):
 		if not GPIO.input(channel):
