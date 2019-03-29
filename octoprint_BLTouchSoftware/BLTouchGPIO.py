@@ -18,7 +18,7 @@ class BLTouchGPIO:
 		self.GPIO_BLTouch_Zmin = 11
 		self.GPIO_BLTouch_Control = 12
 		self.GPIO_Alfawise_Zmin = 13
-		self.GPIO_Switch_Zmin = 18
+		self.GPIO_Switch_Zmin = 3
 
 		self.trigger = False
 
