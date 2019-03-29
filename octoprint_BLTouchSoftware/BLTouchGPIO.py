@@ -31,7 +31,7 @@ class BLTouchGPIO:
 
 		# callback_bltouch_zmin when the zswitch is trigger
 		GPIO.setup(self.GPIO_Switch_Zmin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-		GPIO.add_event_detect(self.GPIO_Switch_Zmin, GPIO.BOTH, callback=self.callback_switch_zmin, bouncetime=200)
+		GPIO.add_event_detect(self.GPIO_Switch_Zmin, GPIO.BOTH, callback=self.callback_switch_zmin)
 
 		# send zmin to printer
 		# GPIO.setup(self.GPIO_Alfawise_Zmin, GPIO.OUT, initial=GPIO.LOW)
