@@ -100,7 +100,7 @@ class BLTouchGPIO:
 			# time.sleep(50)
 			# GPIO.output(12, GPIO.LOW)
 			self.send_zmin_to_printer(True)
-			time.sleep(50)
+			time.sleep(0.25)
 			self.send_zmin_to_printer(False)
 
 	def send_zmin_to_printer(self, status):
