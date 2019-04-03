@@ -1,7 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
-import BedLeveling
+from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
 import octoprint.plugin
 import time
 
