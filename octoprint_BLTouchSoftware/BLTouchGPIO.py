@@ -99,10 +99,10 @@ class BLTouchGPIO:
 
 	def callback_switch_zmin(self, channel):
 		time.sleep(0.001)
-		if not GPIO.input(channel) and not Parameter.safe_mode:
+		if not GPIO.input(channel) and Parameter.safe_mode:
 			self.printlog("SWITCH TRIGGER SAFE MODE! channel=%s" % channel)
 			self.send_zmin_to_printer(True)
-		elif not Parameter.safe_mode:
+		elif Parameter.safe_mode:
 			self.printlog("SWITCH END TRIGGER SAFE MODE! channel=%s" % channel)
 			self.send_zmin_to_printer(False)
 
