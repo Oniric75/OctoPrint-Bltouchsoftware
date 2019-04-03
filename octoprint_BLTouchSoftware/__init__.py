@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
+from octoprint_BLTouchSoftware.MeshLevelingState import Parameter
 import re
 import pickle
 
@@ -60,11 +61,12 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
 		BedLeveling.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
 		BedLeveling.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
+		Parameter.safe_mode = self._settings.get(["safe_mode"])
 
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
-		BedLeveling.safe_mode = self._settings.get(["safe_mode"])
+		Parameter.safe_mode = self._settings.get(["safe_mode"])
 		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
 		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
 		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
@@ -203,7 +205,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					"G90",
 					"G28 Z"]
 		elif cmd and cmd == "G29":
-			BedLeveling.active = True
+			Parameter.levelingActive = True
 			BedLeveling.reset()
 			BedLeveling.gcode_g29()
 			return
@@ -215,7 +217,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
 	def read_m114(self, comm, line, *args, **kwargs):
-		if BedLeveling.active is True:
+		if Parameter.levelingActive:
 			# self._logger.info("===comm:%s, line:%s===" % (comm, line))
 			m114 = re.match(r"ok\s*X:\s*(\d+\.\d+)\s*Y:\s*(\d+\.\d+)\s*Z:\s*(\d+\.\d+).*", line, re.IGNORECASE)
 			if m114:

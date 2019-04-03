@@ -1,7 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
-from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
+from octoprint_BLTouchSoftware.MeshLevelingState import Parameter
 import time
 
 # define for bltouch status
@@ -99,15 +99,15 @@ class BLTouchGPIO:
 
 	def callback_switch_zmin(self, channel):
 		time.sleep(0.001)
-		if not GPIO.input(channel) and not BedLeveling.safe_mode:
+		if not GPIO.input(channel) and not Parameter.safe_mode:
 			self.printlog("SWITCH TRIGGER SAFE MODE! channel=%s" % channel)
 			self.send_zmin_to_printer(True)
-		elif not BedLeveling.safe_mode:
+		elif not Parameter.safe_mode:
 			self.printlog("SWITCH END TRIGGER SAFE MODE! channel=%s" % channel)
 			self.send_zmin_to_printer(False)
 
 	def send_zmin_to_printer(self, status):
-		if status and not BedLeveling.active:
+		if status and not Parameter.levelingActive:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.HIGH)
 		else:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.LOW)

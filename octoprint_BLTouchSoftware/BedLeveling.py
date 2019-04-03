@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import time
 from math import sqrt
-from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
+from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState, Parameter
 from octoprint_BLTouchSoftware.BLTouchGPIO import BLTouchGPIO, BLTouchState
 
 
@@ -30,13 +30,13 @@ class BedLeveling:
 	sleepTime = 0
 	relative = False
 	zigzag_increase = True
-	safe_mode = False  # set through settings : enable or not the zmin switch from alfawise
+	#  safe_mode = False  # set through settings : enable or not the zmin switch from alfawise
 
 	state = MeshLevelingState.MeshStart
 	_zigzag_x_index = -1
 	_zigzag_y_index = -1
 	probe_index = -1
-	active = False  # used to know if we are currently doing a bed leveling
+	#  active = False  # used to know if we are currently doing a bed leveling
 	first_run = True  # used to know if it's the first time into the g29 or not
 	__logger = None
 	printer = None
@@ -257,7 +257,7 @@ class BedLeveling:
 		if BedLeveling.realz <= -2:
 			BedLeveling.printlog("realZ <= -2 ... Erreur? stop process")
 			BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
-			BedLeveling.active = False
+			Parameter.levelingActive = False
 			BedLeveling.printlog(BedLeveling.z_values)
 			BedLeveling.printer.commands(["G28"])
 			return
@@ -280,7 +280,7 @@ class BedLeveling:
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
 			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
-				BedLeveling.active = False
+				Parameter.levelingActive = False
 				BedLeveling.available = True
 				BedLeveling.printlog(BedLeveling.z_values)
 				BedLeveling.printlog("The end!")
