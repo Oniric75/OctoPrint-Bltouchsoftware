@@ -30,6 +30,7 @@ class BedLeveling:
 	sleepTime = 0
 	relative = False
 	zigzag_increase = True
+	safe_mode = False  # set through settings : enable or not the zmin switch from alfawise
 
 	state = MeshLevelingState.MeshStart
 	_zigzag_x_index = -1
@@ -253,7 +254,7 @@ class BedLeveling:
 		py = 0
 
 		# Error Handling
-		if BedLeveling.realz <= -3:
+		if BedLeveling.realz <= -2:
 			BedLeveling.printlog("realZ <= -2 ... Erreur? stop process")
 			BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 			BedLeveling.active = False
@@ -272,7 +273,7 @@ class BedLeveling:
 		else:
 			BedLeveling.printlog("sleep %f..." % BedLeveling.sleepTime)
 			time.sleep(BedLeveling.sleepTime)
-		BedLeveling.printlog("OVER")
+		BedLeveling.printlog("Sleep OVER")
 
 		if BedLeveling.state == MeshLevelingState.MeshStart:
 			BedLeveling.do_m114(True)

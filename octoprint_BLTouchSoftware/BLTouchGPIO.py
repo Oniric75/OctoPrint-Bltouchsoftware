@@ -1,6 +1,8 @@
 # coding=utf-8
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
+import BedLeveling
+import octoprint.plugin
 import time
 
 # define for bltouch status
@@ -27,7 +29,7 @@ class BLTouchGPIO:
 
 		# callback_bltouch_zmin when bltouch touch the bed
 		GPIO.setup(self.GPIO_BLTouch_Zmin, GPIO.IN)
-		GPIO.add_event_detect(self.GPIO_BLTouch_Zmin, GPIO.RISING, callback=self.callback_bltouch_zmin, bouncetime=50)
+		GPIO.add_event_detect(self.GPIO_BLTouch_Zmin, GPIO.BOTH, callback=self.callback_bltouch_zmin, bouncetime=50)
 
 		# callback_bltouch_zmin when the zswitch is trigger
 		GPIO.setup(self.GPIO_Switch_Zmin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -91,21 +93,22 @@ class BLTouchGPIO:
 		if GPIO.input(channel):
 			self.trigger = True
 			self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
+			self.send_zmin_to_printer(True)
+		else:
+			self.printlog("BLTOUCH TRIGGER END! channel=%s" % channel)
+			self.send_zmin_to_printer(False)
 
 	def callback_switch_zmin(self, channel):
 		time.sleep(0.001)
-		if not GPIO.input(channel):
-			self.printlog("SWITCH TRIGGER! channel=%s" % channel)
-			# GPIO.output(channel, GPIO.HIGH)
-			# time.sleep(50)
-			# GPIO.output(12, GPIO.LOW)
+		if not GPIO.input(channel) and not BedLeveling.safe_mode:
+			self.printlog("SWITCH TRIGGER SAFE MODE! channel=%s" % channel)
 			self.send_zmin_to_printer(True)
-		else:
-			self.printlog("SWITCH END TRIGGER! channel=%s" % channel)
+		elif not BedLeveling.safe_mode:
+			self.printlog("SWITCH END TRIGGER SAFE MODE! channel=%s" % channel)
 			self.send_zmin_to_printer(False)
 
 	def send_zmin_to_printer(self, status):
-		if status:
+		if status and not BedLeveling.active:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.HIGH)
 		else:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.LOW)

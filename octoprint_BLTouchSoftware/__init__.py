@@ -3,8 +3,8 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
-
-import re, pickle
+import re
+import pickle
 
 from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
 
@@ -46,6 +46,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					max_y=280,
 					min_z=0,
 					max_z=400,
+					safe_mode=False,
 					enable=False)
 
 	def on_settings_save(self, data):
@@ -63,6 +64,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
+		BedLeveling.safe_mode = self._settings.get(["safe_mode"])
 		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
 		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
 		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
@@ -178,7 +180,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 			if G1:
 				BedLeveling.set_current_pos(G1.group(3), G1.group(4), G1.group(5))
-				if BedLeveling.relative is False:
+				if not BedLeveling.relative:
 					newg1 = self.G1regex.sub(self.buildreplacement(G1), cmd)
 					self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
 				else:
@@ -191,6 +193,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			BedLeveling.set_current_pos(px, py, 0)
+			BedLeveling.bltouch._setmode(650)  # DEPLOY
 			return ["G91",
 					"G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED,
 					"G90",
