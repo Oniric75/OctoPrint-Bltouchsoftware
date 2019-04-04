@@ -6,7 +6,7 @@ from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
 from octoprint_BLTouchSoftware.MeshLevelingState import Parameter
 import re
 import pickle
-
+import time
 from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
 
 class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
@@ -20,7 +20,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		self.G1regex = re.compile(
 			r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
 			re.IGNORECASE)
-
+		self.g28 = False
 
 	##~~ AssetPlugin mixin
 	def get_assets(self):
@@ -190,18 +190,18 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			else:
 				self._logger.info("Regex Fail ? cmd=\'%s\'" % cmd)
 
-		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
+		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0") and not self.g28:
 			self._logger.info("Detect G28")
+			self.g28 = True
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			BedLeveling.set_current_pos(px, py, 0)
-			self._printer.commands(["G91", "G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED, "G90"])
-			self._printer.commands(
-				["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED), "G90"])
 			BedLeveling.bltouch._setmode(2190)  # RESET
+			BedLeveling.bltouch._setmode(1475)  # STOW
+			self._printer.commands(["G91", "G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED, "G90"])
+			time.sleep(0.5)
 			BedLeveling.bltouch._setmode(650)  # DEPLOY
-			self._printer.commands(["G28 Z"])
-			return
+			return ["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED), "G90", "G28 Z"]
 		elif cmd and cmd == "G29":
 			Parameter.levelingActive = True
 			BedLeveling.reset()
