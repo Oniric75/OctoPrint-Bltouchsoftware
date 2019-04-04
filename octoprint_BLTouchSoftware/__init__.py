@@ -204,6 +204,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 					"G91",
 					("G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED)),
 					"G90",
+					"M280 P0 S160",
 					"M280 P0 S10",
 					"G28 Z"]
 		elif cmd and cmd == "G29":
