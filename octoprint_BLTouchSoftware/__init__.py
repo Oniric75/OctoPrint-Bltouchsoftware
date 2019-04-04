@@ -195,18 +195,13 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
 			BedLeveling.set_current_pos(px, py, 0)
+			self._printer.commands(["G91", "G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED, "G90"])
+			self._printer.commands(
+				["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED), "G90"])
+			BedLeveling.bltouch._setmode(2190)  # RESET
 			BedLeveling.bltouch._setmode(650)  # DEPLOY
-			return ["G91",
-					"G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED,
-					"G90",
-					"M280 P0 S90",
-					"G28 X Y",
-					"G91",
-					("G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED)),
-					"G90",
-					"M280 P0 S160",
-					"M280 P0 S10",
-					"G28 Z"]
+			self._printer.commands(["G28 Z"])
+			return
 		elif cmd and cmd == "G29":
 			Parameter.levelingActive = True
 			BedLeveling.reset()
