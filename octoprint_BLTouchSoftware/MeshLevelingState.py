@@ -14,4 +14,5 @@ class MeshLevelingState():
 
 class Parameter():
 	levelingActive = False
+	levelingFirstRun = False
 	safe_mode = False

@@ -212,7 +212,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
 	def read_m114(self, comm, line, *args, **kwargs):
-		if Parameter.levelingActive:
+		if Parameter.levelingActive or Parameter.levelingFirstRun:
 			# self._logger.info("===comm:%s, line:%s===" % (comm, line))
 			m114 = re.match(r"ok\s*X:\s*(\d+\.\d+)\s*Y:\s*(\d+\.\d+)\s*Z:\s*(\d+\.\d+).*", line, re.IGNORECASE)
 			if m114:

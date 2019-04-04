@@ -258,6 +258,7 @@ class BedLeveling:
 			BedLeveling.printlog("realZ <= -2 ... Erreur? stop process")
 			BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 			Parameter.levelingActive = False
+			Parameter.levelingFirstRun = False
 			BedLeveling.printlog(BedLeveling.z_values)
 			BedLeveling.printer.commands(["G28"])
 			return
@@ -276,11 +277,13 @@ class BedLeveling:
 		BedLeveling.printlog("Sleep OVER")
 
 		if BedLeveling.state == MeshLevelingState.MeshStart:
+			Parameter.levelingFirstRun = True
 			BedLeveling.do_m114(True)
 		elif BedLeveling.state == MeshLevelingState.MeshNext:
 			if BedLeveling.probe_index >= BedLeveling.grid_max_points_x * BedLeveling.grid_max_points_y:
 				BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 				Parameter.levelingActive = False
+				Parameter.levelingFirstRun = False
 				BedLeveling.available = True
 				BedLeveling.printlog(BedLeveling.z_values)
 				BedLeveling.printlog("The end!")
