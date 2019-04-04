@@ -201,7 +201,6 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			BedLeveling.bltouch._setmode(650)  # DEPLOY
 			return ["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED), "G90", "G28 Z"]
 		elif cmd and cmd == "G29":
-			Parameter.levelingActive = True
 			BedLeveling.reset()
 			BedLeveling.gcode_g29()
 			return
@@ -222,6 +221,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 				if BedLeveling.state == MeshLevelingState.MeshStart:
 					BedLeveling.realz = 0
 					BedLeveling.state = MeshLevelingState.MeshNext
+					Parameter.levelingActive = True
 				BedLeveling.gcode_g29()
 		return line
 
