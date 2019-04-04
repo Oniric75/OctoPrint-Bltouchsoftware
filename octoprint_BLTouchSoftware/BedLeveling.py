@@ -219,8 +219,8 @@ class BedLeveling:
 	@staticmethod
 	def do_m114(home=False):
 		if home:
-			BedLeveling.printer.commands(["G28", "M114"])
 			BedLeveling.bltouch.reset()
+			BedLeveling.printer.commands(["G28", "M114"])
 		else:
 			BedLeveling.printer.commands("M114")
 
