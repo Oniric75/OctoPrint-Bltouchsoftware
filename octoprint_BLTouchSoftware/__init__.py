@@ -3,11 +3,11 @@ from __future__ import absolute_import
 
 import octoprint.plugin
 from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
-from octoprint_BLTouchSoftware.MeshLevelingState import Parameter
+from octoprint_BLTouchSoftware.MeshLevelingParameter import Parameter
 import re
 import pickle
 import time
-from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState
+from octoprint_BLTouchSoftware.MeshLevelingParameter import MeshLevelingState
 
 class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.SettingsPlugin,

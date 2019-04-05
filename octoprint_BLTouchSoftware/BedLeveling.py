@@ -3,7 +3,7 @@ from __future__ import absolute_import
 
 import time
 from math import sqrt
-from octoprint_BLTouchSoftware.MeshLevelingState import MeshLevelingState, Parameter
+from octoprint_BLTouchSoftware.MeshLevelingParameter import MeshLevelingState, Parameter
 from octoprint_BLTouchSoftware.BLTouchGPIO import BLTouchGPIO, BLTouchState
 
 
