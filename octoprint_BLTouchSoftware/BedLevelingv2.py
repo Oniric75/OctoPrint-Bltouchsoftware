@@ -9,9 +9,8 @@ from octoprint_BLTouchSoftware.BLTouchGPIO import BLTouchGPIO, BLTouchState
 
 class BedLevelingv2:
 
-	def __init__(self, logger, printer):
-		self.__logger = logger
-		self.printer = printer
+	def __init__(self):
+
 		self.prev_position = None  # used to store the previous position (in case of relative move)
 		self.current_position = None  # used to store the current position
 		self.relative = False  # used to know if we are currently doing a relative move or not
@@ -34,6 +33,12 @@ class BedLevelingv2:
 		self.first_run = True
 
 		self.bltouch = BLTouchGPIO(self)
+
+	def setlogger(self, logger):
+		self.__logger = logger
+
+	def setprinter(self, printer):
+		self.printer = printer
 
 	def printlog(self, log, level="INFO"):
 		if self.__logger is None:

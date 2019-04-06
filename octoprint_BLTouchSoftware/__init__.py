@@ -23,7 +23,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		self.G1regex = re.compile(
 			r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
 			re.IGNORECASE)
-		self.BedLeveling = BedLevelingv2(self._logger, self._printer)
+		self.BedLeveling = BedLevelingv2()
 
 	##~~ AssetPlugin mixin
 	def get_assets(self):
@@ -75,6 +75,9 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
 		Parameter.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
 		Parameter.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
+
+		self.BedLeveling.setlogger(self._logger)
+		self.BedLeveling.setprinter(self._printer)
 		self._logger.info("Loading BLTouch!")
 		profile = self._printer_profile_manager.get_default()
 		volume = profile["volume"]
