@@ -220,8 +220,11 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 				pickle.dump(self.BedLeveling.z_values, filehandler)
 
 
-		elif cmd and cmd == "Batman":
-			self.BedLeveling.bltouch.callback_bltouch_zmin("Batman")
+		elif cmd and cmd == "ZTest":
+			self._logger.info("Ztesting...")
+			self.BedLeveling.bltouch.send_zmin_to_printer(True)
+			time.sleep(0.5)
+			self.BedLeveling.bltouch.send_zmin_to_printer(False)
 			return
 		return cmd
 
