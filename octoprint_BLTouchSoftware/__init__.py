@@ -219,6 +219,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			with open(self.m500path, 'wb+') as filehandler:
 				pickle.dump(self.BedLeveling.z_values, filehandler)
 
+
+		elif cmd and cmd == "Batman":
+			self.BedLeveling.bltouch.callback_bltouch_zmin("Batman")
+			return
 		return cmd
 
 	#  alfawise : ok X:0.0 Y:0.0 Z:0.0 .*
