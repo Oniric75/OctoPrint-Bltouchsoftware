@@ -11,6 +11,9 @@ class BedLevelingv2:
 
 	def __init__(self):
 
+		self.__logger = None
+		self.printer = None
+
 		self.prev_position = None  # used to store the previous position (in case of relative move)
 		self.current_position = None  # used to store the current position
 		self.relative = False  # used to know if we are currently doing a relative move or not
@@ -36,6 +39,7 @@ class BedLevelingv2:
 
 	def setlogger(self, logger):
 		self.__logger = logger
+		self.bltouch.setlogger(logger)
 
 	def setprinter(self, printer):
 		self.printer = printer
