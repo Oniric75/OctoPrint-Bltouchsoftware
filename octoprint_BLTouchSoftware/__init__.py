@@ -107,8 +107,8 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 		self.BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
-		self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_RESET)
-		self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_STOW)
+		self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
+		self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_STOW)
 
 		try:
 			with open(self.m500path, 'rb') as filehandler:
