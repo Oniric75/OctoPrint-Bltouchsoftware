@@ -122,7 +122,11 @@ class BLTouchGPIO:
 			self.send_zmin_to_printer(False)
 
 	def send_zmin_to_printer(self, status):
-		if status and not Parameter.levelingActive:
+		#  used for the g28 at the begining of the g29
+		if status and Parameter.levelingActive and Parameter.levelingFirstRun:
+			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.HIGH)
+		#  used to disable home reset while g29
+		elif status and not Parameter.levelingActive:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.HIGH)
 		else:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.LOW)
