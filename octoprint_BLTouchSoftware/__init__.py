@@ -2,12 +2,15 @@
 from __future__ import absolute_import
 
 import octoprint.plugin
-from octoprint_BLTouchSoftware.BedLeveling import BedLeveling
 from octoprint_BLTouchSoftware.MeshLevelingParameter import Parameter
+from octoprint_BLTouchSoftware.BedLevelingv2 import BedLevelingv2
 import re
 import pickle
 import time
 from octoprint_BLTouchSoftware.MeshLevelingParameter import MeshLevelingState
+from octoprint_BLTouchSoftware.BLTouchGPIO import BLTouchState
+
+from octoprint_BLTouchSoftware.MeshLevelingParameter import AXIS
 
 class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 							octoprint.plugin.SettingsPlugin,
@@ -20,6 +23,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		self.G1regex = re.compile(
 			r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
 			re.IGNORECASE)
+		self.BedLeveling = BedLevelingv2(self._logger, self._printer)
 
 	##~~ AssetPlugin mixin
 	def get_assets(self):
@@ -53,64 +57,62 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
 		self._logger.info("maxx: %d maxy: %d" % (
 			self._settings.get(["grid_max_points_x"]), self._settings.get(["grid_max_points_y"])))
-		BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
-								  self._settings.get(["grid_max_points_y"]))
-		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
-		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
-		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
-		BedLeveling.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
-		BedLeveling.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
+		self.BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
+									   self._settings.get(["grid_max_points_y"]))
+		Parameter.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
+		Parameter.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
+		Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
+		Parameter.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
+		Parameter.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
 		Parameter.safe_mode = self._settings.get(["safe_mode"])
 
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
 		Parameter.safe_mode = self._settings.get(["safe_mode"])
-		BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
-		BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
-		BedLeveling.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
-		BedLeveling.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
-		BedLeveling.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
-		BedLeveling.set_logger(self._logger)
-		BedLeveling.printer = self._printer
+		Parameter.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
+		Parameter.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
+		Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["z_probe_offset_from_extruder"])
+		Parameter.Z_CLEARANCE_DEPLOY_PROBE = self._settings.get(["z_clearance_deploy_probe"])
+		Parameter.XY_PROBE_SPEED = int(self._settings.get(["xy_probe_speed"]))
 		self._logger.info("Loading BLTouch!")
 		profile = self._printer_profile_manager.get_default()
 		volume = profile["volume"]
 		custom_box = volume["custom_box"]
 		# see if we have a custom bounding box
 		if custom_box:
-			BedLeveling.min_x = custom_box["x_min"]
-			BedLeveling.max_x = custom_box["x_max"]
-			BedLeveling.min_y = custom_box["y_min"]
-			BedLeveling.max_y = custom_box["y_max"]
-			BedLeveling.min_z = custom_box["z_min"]
-			BedLeveling.max_z = custom_box["z_max"]
+			Parameter.min_x = custom_box["x_min"]
+			Parameter.max_x = custom_box["x_max"]
+			Parameter.min_y = custom_box["y_min"]
+			Parameter.max_y = custom_box["y_max"]
+			Parameter.min_z = custom_box["z_min"]
+			Parameter.max_z = custom_box["z_max"]
 		elif self._settings.get(["min_x"]) is not None and self._settings.get(["min_x"]) != "":
-			BedLeveling.min_x = int(self._settings.get(["min_x"]))
-			BedLeveling.max_x = int(self._settings.get(["max_x"]))
-			BedLeveling.min_y = int(self._settings.get(["min_y"]))
-			BedLeveling.max_y = int(self._settings.get(["max_x"]))
-			BedLeveling.min_z = int(self._settings.get(["min_z"]))
-			BedLeveling.max_z = int(self._settings.get(["max_z"]))
+			Parameter.min_x = int(self._settings.get(["min_x"]))
+			Parameter.max_x = int(self._settings.get(["max_x"]))
+			Parameter.min_y = int(self._settings.get(["min_y"]))
+			Parameter.max_y = int(self._settings.get(["max_x"]))
+			Parameter.min_z = int(self._settings.get(["min_z"]))
+			Parameter.max_z = int(self._settings.get(["max_z"]))
 		else:
-			BedLeveling.min_x = 0
-			BedLeveling.max_x = volume["width"]
-			BedLeveling.min_y = 0
-			BedLeveling.max_y = volume["depth"]
-			BedLeveling.min_z = 0
-			BedLeveling.max_z = volume["height"]
+			Parameter.min_x = 0
+			Parameter.max_x = volume["width"]
+			Parameter.min_y = 0
+			Parameter.max_y = volume["depth"]
+			Parameter.min_z = 0
+			Parameter.max_z = volume["height"]
 
-		BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
+		self.BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
-		BedLeveling.bltouch._setmode(2190)
-		BedLeveling.bltouch._setmode(1475)
+		self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_RESET)
+		self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_STOW)
 
 		try:
 			with open(self.m500path, 'rb') as filehandler:
-				BedLeveling.z_values = pickle.load(filehandler)
+				self.BedLeveling.z_values = pickle.load(filehandler)
 				self._logger.info("meshmap:")
-				self._logger.info(BedLeveling.z_values)
-				BedLeveling.available = True
+				self._logger.info(self.BedLeveling.z_values)
+				self.BedLeveling.available = True
 		except IOError:
 			self._logger.info("Error: No mesh map found...")
 
@@ -124,13 +126,14 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 	def buildreplacement(self, g1):
 		replstr = r"\1"
-		self._logger.info("curZ: %f, get_z:%f" % (BedLeveling.current_position[BedLeveling.Z_AXIS],
-												  BedLeveling.get_z(BedLeveling.current_position[BedLeveling.X_AXIS],
-																	BedLeveling.current_position[BedLeveling.Y_AXIS])))
+		self._logger.info("curZ: %f, get_z:%f" % (self.BedLeveling.current_position[AXIS.Z_AXIS],
+												  self.BedLeveling.get_z(self.BedLeveling.current_position[AXIS.X_AXIS],
+																		 self.BedLeveling.current_position[
+																			 AXIS.Y_AXIS])))
 
-		off_z = float(BedLeveling.get_z(BedLeveling.current_position[BedLeveling.X_AXIS],
-										BedLeveling.current_position[BedLeveling.Y_AXIS]))
-		pz = BedLeveling.current_position[BedLeveling.Z_AXIS] + off_z
+		off_z = float(self.BedLeveling.get_z(self.BedLeveling.current_position[AXIS.X_AXIS],
+											 self.BedLeveling.current_position[AXIS.Y_AXIS]))
+		pz = self.BedLeveling.current_position[AXIS.Z_AXIS] + off_z
 		if g1.group(2) is not None:
 			replstr += r" %s" % g1.group(2)
 		if g1.group(3) is not None:
@@ -155,33 +158,36 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	#  G29 : start probing
 	def rewrite_hooker(self, comm_instance, phase, cmd, cmd_type, gcode, *args, **kwargs):
 		if gcode and gcode == "G90":
-			BedLeveling.relative = False
+			self.BedLeveling.relative = False
 		elif gcode and gcode == "G91":
-			BedLeveling.relative = True
+			self.BedLeveling.relative = True
 		elif cmd and cmd == "M280 P0 S10":
 			self._logger.info("BLTOUCH_DEPLOY")
 			# BedLeveling.bltouch.probemode(10)  # BLTOUCH_DEPLOY
-			BedLeveling.bltouch._setmode(650)
+			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_DEPLOY)
 		elif cmd and cmd == "M280 P0 S90":
 			self._logger.info("BLTOUCH_STOW")
 			# BedLeveling.bltouch.probemode(90)  # BLTOUCH_STOW
-			BedLeveling.bltouch._setmode(1475)
+			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_STOW)
+		# BedLeveling.bltouch._setmode(1475)
 		elif cmd and cmd == "M280 P0 S120":
 			self._logger.info("BLTOUCH_SELFTEST")
 			# BedLeveling.bltouch.probemode(120)  # BLTOUCH_SELFTEST
-			BedLeveling.bltouch._setmode(1780)
+			# BedLeveling.bltouch._setmode(1780)
+			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_SELFTEST)
 		elif cmd and cmd == "M280 P0 S160":
 			self._logger.info("BLTOUCH_RESET")
 			# BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
-			BedLeveling.bltouch._setmode(2190)
-		elif BedLeveling.available and gcode and (gcode == "G1" or gcode == "G0"):
+			# BedLeveling.bltouch._setmode(2190BLTOUCH_RESET)
+			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_RESET)
+		elif self.BedLeveling.available and gcode and (gcode == "G1" or gcode == "G0"):
 			# improvement doable ? look into void plan_arc in marlin_main.cpp (planner.apply_leveling)
 			G1 = self.G1regex.match(cmd)
 			self._logger.info("TRIGGER G0/G1...")
 
 			if G1:
-				BedLeveling.set_current_pos(G1.group(3), G1.group(4), G1.group(5))
-				if not BedLeveling.relative:
+				self.BedLeveling.set_current_pos(G1.group(3), G1.group(4), G1.group(5))
+				if not self.BedLeveling.relative:
 					newg1 = self.G1regex.sub(self.buildreplacement(G1), cmd)
 					self._logger.info("cmd=%s, replaced by: \'%s\'" % (cmd, newg1))
 				else:
@@ -191,22 +197,24 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
 			self._logger.info("Detect G28")
-			px = (BedLeveling.max_x - BedLeveling.min_x + BedLeveling.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			py = (BedLeveling.max_y - BedLeveling.min_y + BedLeveling.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			BedLeveling.set_current_pos(px, py, 0)
-			BedLeveling.bltouch._setmode(2190)  # RESET
-			BedLeveling.bltouch._setmode(1475)  # STOW
-			self._printer.commands(["G91", "G1 Z10 F%d" % BedLeveling.XY_PROBE_SPEED, "G90"])
+			px = (Parameter.max_x - Parameter.min_x + Parameter.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
+			py = (Parameter.max_y - Parameter.min_y + Parameter.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
+			self.BedLeveling.set_current_pos(px, py, 0)
+			# BedLeveling.bltouch._setmode(2190)  # RESET
+			# BedLeveling.bltouch._setmode(1475)  # STOW
+			self.BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+			self._printer.commands(["G91", "G1 Z10 F%d" % Parameter.XY_PROBE_SPEED, "G90"])
 			time.sleep(0.5)
-			BedLeveling.bltouch._setmode(650)  # DEPLOY
-			return ["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, BedLeveling.XY_PROBE_SPEED), "G90", "G28 Z"]
+			# self.BedLeveling.bltouch._setmode(650)  # DEPLOY
+			self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
+			return ["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, Parameter.XY_PROBE_SPEED), "G90", "G28 Z"]
 		elif cmd and cmd == "G29":
-			BedLeveling.reset()
-			BedLeveling.gcode_g29()
+			self.BedLeveling.reset()
+			self.BedLeveling.g29v2()
 			return
 		elif gcode and gcode == "M500":
 			with open(self.m500path, 'wb+') as filehandler:
-				pickle.dump(BedLeveling.z_values, filehandler)
+				pickle.dump(self.BedLeveling.z_values, filehandler)
 
 		return cmd
 

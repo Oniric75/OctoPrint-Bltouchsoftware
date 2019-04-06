@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
 from octoprint_BLTouchSoftware.MeshLevelingParameter import Parameter
+from octoprint_BLTouchSoftware.BedLevelingv2 import BedLevelingv2
 import time
 
 # define for bltouch status
@@ -15,13 +16,14 @@ class BLTouchState:
 # https://sourceforge.net/p/raspberry-gpio-python/wiki/Inputs/
 class BLTouchGPIO:
 
-	def __init__(self):
+	def __init__(self, bedlevelinginstance):
 		self.GPIO_BLTouch_Zmin = 11
 		self.GPIO_BLTouch_Control = 12
 		self.GPIO_Alfawise_Zmin = 13
 		self.GPIO_Switch_Zmin = 16
-
-		self.trigger = False
+		self.count = 0
+		self.bedlevelingInstance = bedlevelinginstance
+		# self.trigger = False
 
 		GPIO.cleanup()
 		GPIO.setmode(GPIO.BOARD)
@@ -72,9 +74,12 @@ class BLTouchGPIO:
 	'''
 
 	def reset(self, mode=BLTouchState.BLTOUCH_STOW):
-		self.trigger = False
+		#self.trigger = False
 		self.probemode(BLTouchState.BLTOUCH_RESET)
+		time.sleep(0.5)
+		self.count = 0
 		self.probemode(mode)
+
 
 
 	def probemode(self, mode=BLTouchState.BLTOUCH_STOW):
@@ -90,11 +95,19 @@ class BLTouchGPIO:
 	def callback_bltouch_zmin(self, channel):
 		time.sleep(0.001)
 		if GPIO.input(channel):
-			self.trigger = True
+			#	self.trigger = True
 			self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
 			self.send_zmin_to_printer(True)
 			time.sleep(0.005)
 			self.send_zmin_to_printer(False)
+			self.count += 1
+			if Parameter.levelingActive:
+				self.count += 1
+				if self.count >= 2:
+					self.count = 0
+					self.bedlevelingInstance.g29v2()
+
+
 		else:
 			self.printlog("BLTOUCH TRIGGER END! channel=%s" % channel)
 			self.send_zmin_to_printer(False)
