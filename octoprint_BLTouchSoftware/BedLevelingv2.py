@@ -209,6 +209,7 @@ class BedLevelingv2:
 		if self.state == MeshLevelingState.MeshStart:
 			self.reset()
 			Parameter.levelingFirstRun = True
+			Parameter.levelingActive = True
 			self.printer.commands(["G28"])
 			self.state = MeshLevelingState.MeshNext
 		# self.do_m114(True)
