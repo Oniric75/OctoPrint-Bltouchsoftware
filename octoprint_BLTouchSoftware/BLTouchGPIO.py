@@ -100,13 +100,13 @@ class BLTouchGPIO:
 			self.send_zmin_to_printer(True)
 			time.sleep(0.005)
 			self.send_zmin_to_printer(False)
-			self.count += 1
-			if Parameter.levelingActive:
+			if Parameter.levelingActive and Parameter.levelingFirstRun:
 				self.count += 1
 				if self.count >= 2:
 					self.count = 0
 					self.bedlevelingInstance.g29v2()
-
+			elif Parameter.levelingActive:
+				self.bedlevelingInstance.g29v2()
 
 		else:
 			self.printlog("BLTOUCH TRIGGER END! channel=%s" % channel)

@@ -204,6 +204,7 @@ class BedLevelingv2:
 			self.state = MeshLevelingState.MeshNext
 		# self.do_m114(True)
 		elif self.state == MeshLevelingState.MeshNext:
+			self.printlog("MeshNext")
 			pass
 
 	#  Using mesh map build with g29 to improve Z accuracy
