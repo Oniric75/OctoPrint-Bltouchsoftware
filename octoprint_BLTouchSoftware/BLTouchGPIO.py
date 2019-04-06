@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
 from octoprint_BLTouchSoftware.MeshLevelingParameter import Parameter
-from octoprint_BLTouchSoftware.BedLevelingv2 import BedLevelingv2
+
 import time
 
 # define for bltouch status
