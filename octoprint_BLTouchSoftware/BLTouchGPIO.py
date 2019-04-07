@@ -2,7 +2,7 @@
 from __future__ import absolute_import
 import RPi.GPIO as GPIO
 from octoprint_BLTouchSoftware.MeshLevelingParameter import Parameter
-
+import inspect
 import time
 
 # define for bltouch status
@@ -87,7 +87,7 @@ class BLTouchGPIO:
 			self.printlog("BLTOUCH mode change DEPLOY")
 			self._setmode(650)
 		elif mode == BLTouchState.BLTOUCH_STOW:
-			self.printlog("BLTOUCH mode change STOW")
+			self.printlog("BLTOUCH mode change STOW : %s" % inspect.stack())
 			self._setmode(1475)
 		elif mode == BLTouchState.BLTOUCH_SELFTEST:
 			self.printlog("BLTOUCH mode change SELFTEST")
