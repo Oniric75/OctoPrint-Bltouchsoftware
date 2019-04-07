@@ -205,9 +205,9 @@ class BedLevelingv2:
 
 		# todo : improve this part. make sure the sleep is right ... maybe the g29 should be threaded ?
 		# wait for the move to be done ...
-		if self.sleepTime > 2:
-			self.printlog("sleep 2...")
-			time.sleep(2)
+		if self.sleepTime > 10:
+			self.printlog("sleep 10...")
+			time.sleep(10)
 		elif self.sleepTime < 1:
 			self.printlog("sleep 0.5...")
 			time.sleep(0.5)
