@@ -100,6 +100,7 @@ class BLTouchGPIO:
 		time.sleep(0.001)
 		if GPIO.input(channel):
 			if Parameter.levelingHome:
+				self.printlog("BLTOUCH count %i" % self.count)
 				self.count += 1
 				if self.count >= 2:
 					self.printlog("BLTOUCH HOME TRIGGER x2! channel=%s" % channel)
