@@ -204,9 +204,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			if self.FirstHome:
 				self._logger.info("Detect G28 time1 cmd:%s" % cmd)
 				self.FirstHome = False
+				self.BedLeveling.bltouch.reset()
 				self._printer.commands(["G91", "G1 Z10 F%d" % Parameter.XY_PROBE_SPEED, "G90", cmd])
 				self._logger.info("print after moving ?!")
-				self.BedLeveling.bltouch.reset()
+
 			else:
 				time.sleep(2)
 				self.FirstHome = True
