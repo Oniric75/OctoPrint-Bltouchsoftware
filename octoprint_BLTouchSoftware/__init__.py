@@ -24,6 +24,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			r"(G[01]\s*)(F[+-]?\d+(?:\.\d+)?)?\s*(?:X([+-]?\d+(?:\.\d+)?))?\s*(?:Y([+-]?\d+(?:\.\d+)?))?\s*(?:Z([+-]?\d+(?:\.\d+)?))?\s*(E[+-]?\d+(?:\.\d+)?)?(F[+-]?\d+(?:\.\d+)?)?",
 			re.IGNORECASE)
 		self.BedLeveling = BedLevelingv2()
+		self.FirstHome = True
 
 	##~~ AssetPlugin mixin
 	def get_assets(self):
@@ -200,17 +201,20 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 
 		elif cmd and (cmd == "G28" or cmd == "G28 Z" or cmd == "G28 Z0"):
 			self._logger.info("Detect G28")
-			px = (Parameter.max_x - Parameter.min_x + Parameter.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			py = (Parameter.max_y - Parameter.min_y + Parameter.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
-			self.BedLeveling.set_current_pos(px, py, 0)
+			if self.FirstHome:
+				self.FirstHome = False
+				self._printer.commands(["G91", "G1 Z10 F%d" % Parameter.XY_PROBE_SPEED, "G90", cmd])
+				self.BedLeveling.bltouch.reset()
+			else:
+				time.sleep(2)
+				self.FirstHome = True
+				px = (Parameter.max_x - Parameter.min_x + Parameter.X_PROBE_OFFSET_FROM_EXTRUDER) / 2
+				py = (Parameter.max_y - Parameter.min_y + Parameter.Y_PROBE_OFFSET_FROM_EXTRUDER) / 2
+				self.BedLeveling.set_current_pos(px, py, 0)
 			# BedLeveling.bltouch._setmode(2190)  # RESET
 			# BedLeveling.bltouch._setmode(1475)  # STOW
-			self.BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
-			self._printer.commands(["G91", "G1 Z10 F%d" % Parameter.XY_PROBE_SPEED, "G90"])
-			time.sleep(0.5)
-			# self.BedLeveling.bltouch._setmode(650)  # DEPLOY
-			self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
-			return ["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, Parameter.XY_PROBE_SPEED), "G90", "G28 Z"]
+				self.BedLeveling.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+				return ["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, Parameter.XY_PROBE_SPEED), "G90", "G28 Z"]
 		elif cmd and cmd == "G29":
 			self.BedLeveling.reset()
 			self.BedLeveling.g29v2()

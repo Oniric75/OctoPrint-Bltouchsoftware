@@ -192,8 +192,6 @@ class BedLevelingv2:
 			pz)
 
 	def g29v2(self):
-
-
 		# Error Handling
 		if Parameter.realz <= -2:
 			self.printlog("realZ <= -2 ... Erreur? stop process")
