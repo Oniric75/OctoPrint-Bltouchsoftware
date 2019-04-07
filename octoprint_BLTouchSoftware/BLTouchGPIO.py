@@ -84,12 +84,16 @@ class BLTouchGPIO:
 
 	def probemode(self, mode=BLTouchState.BLTOUCH_STOW):
 		if mode == BLTouchState.BLTOUCH_DEPLOY:
+			self.printlog("BLTOUCH mode change DEPLOY")
 			self._setmode(650)
 		elif mode == BLTouchState.BLTOUCH_STOW:
+			self.printlog("BLTOUCH mode change STOW")
 			self._setmode(1475)
 		elif mode == BLTouchState.BLTOUCH_SELFTEST:
+			self.printlog("BLTOUCH mode change SELFTEST")
 			self._setmode(1780)
 		elif mode == BLTouchState.BLTOUCH_RESET:
+			self.printlog("BLTOUCH mode change RESET")
 			self._setmode(2190)
 
 	def callback_bltouch_zmin(self, channel):
