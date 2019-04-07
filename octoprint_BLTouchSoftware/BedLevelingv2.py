@@ -206,11 +206,11 @@ class BedLevelingv2:
 		# todo : improve this part. make sure the sleep is right ... maybe the g29 should be threaded ?
 		# wait for the move to be done ...
 		if self.sleepTime > 10:
-			self.printlog("sleep 10...")
-			time.sleep(10)
+			self.printlog("sleep 8...")
+			time.sleep(8)
 		elif self.sleepTime < 1:
 			self.printlog("sleep 1...")
-			time.sleep(1)
+			time.sleep(0.8)
 		else:
 			self.printlog("sleep %f..." % self.sleepTime)
 			time.sleep(self.sleepTime)
@@ -338,4 +338,4 @@ class BedLevelingv2:
 								   self.index_to_ypos[cy + 1],
 								   z2)
 
-		return Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER + z0
+		return z0
