@@ -199,7 +199,7 @@ class BedLevelingv2:
 			self.printlog("realZ <= -2 ... Erreur? stop process")
 			self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 			Parameter.levelingActive = False
-			Parameter.levelingFirstRun = False
+			Parameter.levelingHome = False
 			self.printlog(self.z_values)
 			return
 
@@ -220,17 +220,17 @@ class BedLevelingv2:
 		# Init : first time the g29 function is called
 		if self.state == MeshLevelingState.MeshStart:
 			self.reset()
-			Parameter.levelingFirstRun = True
+			Parameter.levelingHome = True
 			Parameter.levelingActive = True
 			self.printer.commands(["G28"])
 			self.state = MeshLevelingState.MeshNext
 		# self.do_m114(True)
 		elif self.state == MeshLevelingState.MeshNext:
 			self.printlog("MeshNext")
-			if self.probe_index >= Parameter.grid_max_points_x * Parameter.grid_max_points_y:
+			if self.probe_index >= Parameter.grid_max_points_x * Parameter.grid_max_points_y:  # End
 				self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 				Parameter.levelingActive = False
-				Parameter.levelingFirstRun = False
+				Parameter.levelingHome = False
 				self.available = True
 				self.printlog(self.z_values)
 				self.printlog("The end!")

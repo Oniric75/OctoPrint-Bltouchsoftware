@@ -95,7 +95,7 @@ class BLTouchGPIO:
 	def callback_bltouch_zmin(self, channel):
 		time.sleep(0.001)
 		if GPIO.input(channel):
-			if Parameter.levelingActive and Parameter.levelingFirstRun:
+			if Parameter.levelingHome:
 				self.count += 1
 				if self.count >= 2:
 					self.send_zmin_to_printer(True)
@@ -103,6 +103,7 @@ class BLTouchGPIO:
 					self.send_zmin_to_printer(False)
 					self.count = 0
 					Parameter.realz = Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER
+					Parameter.levelingHome = False
 					self.bedlevelingInstance.g29v2()
 					return
 			elif Parameter.levelingActive:
@@ -128,9 +129,9 @@ class BLTouchGPIO:
 
 	def send_zmin_to_printer(self, status):
 		#  used for the g28 at the begining of the g29
-		if status and not Parameter.levelingActive:
+		if status:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.HIGH)
-		elif not status:
+		else:
 			GPIO.output(self.GPIO_Alfawise_Zmin, GPIO.LOW)
 
 	def cleanup(self):
