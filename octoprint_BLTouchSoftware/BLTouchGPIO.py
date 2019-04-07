@@ -116,7 +116,7 @@ class BLTouchGPIO:
 				self.trigger = True
 				self.printlog("BLTOUCH TRIGGER Leveling! channel=%s" % channel)
 				return
-			self.printlog("BLTOUCH TRIGGER Leveling! channel=%s" % channel)
+			self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
 			self.send_zmin_to_printer(True)
 			time.sleep(0.005)
 			self.send_zmin_to_printer(False)
