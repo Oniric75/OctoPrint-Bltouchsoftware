@@ -29,6 +29,7 @@ class Parameter:
 	grid_max_points_y = 0  # number of probe grid y. DEFAULT : 3	settings ok
 	mesh_x_dist = 0  # space between probing point, calculated from max points x, settings N/A
 	mesh_y_dist = 0  # space between probing point, calculated from max points y	 settings N/A
+	realz = 0  # used to keep track of Z while probing
 
 	BLTOUCH_DELAY = 375
 	MULTIPLE_PROBING = 2  # The number of probes to perform at each point.

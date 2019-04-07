@@ -32,7 +32,7 @@ class BedLevelingv2:
 		self._zigzag_x_index = -1
 		self._zigzag_y_index = 0
 		self.probe_index = 0
-		self.realz = 0
+		# self.realz = 0
 		self.first_run = True
 
 		self.bltouch = BLTouchGPIO(self)
@@ -126,7 +126,7 @@ class BedLevelingv2:
 		self._zigzag_x_index = -1
 		self._zigzag_y_index = 0
 		self.probe_index = 0
-		self.realz = 0
+		Parameter.realz = 0
 		self.first_run = True
 		self.z_values = None
 		self.z_values = [[0 for y in range(Parameter.grid_max_points_y)] for x in
@@ -196,7 +196,7 @@ class BedLevelingv2:
 		py = 0
 
 		# Error Handling
-		if self.realz <= -2:
+		if Parameter.realz <= -2:
 			self.printlog("realZ <= -2 ... Erreur? stop process")
 			self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 			Parameter.levelingActive = False
@@ -215,7 +215,63 @@ class BedLevelingv2:
 		# self.do_m114(True)
 		elif self.state == MeshLevelingState.MeshNext:
 			self.printlog("MeshNext")
-			pass
+			if self.first_run:  # set the head in position
+				self.first_run = False
+				self.do_blocking_move_to_z(Parameter.Z_CLEARANCE_DEPLOY_PROBE)
+				self.zigzag(Parameter.Z_CLEARANCE_DEPLOY_PROBE)  # Move close to the bed
+				Parameter.realz = Parameter.Z_CLEARANCE_DEPLOY_PROBE
+				self.do_m114()
+				self.printlog("Init!")
+			else:  # the head is in position, start fast probing
+				if self.current_position[AXIS.Z_AXIS] == Parameter.Z_CLEARANCE_DEPLOY_PROBE:
+					self.printlog("start fast probing")
+					self.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
+				if not self.bltouch.trigger:  # the probe didnt touch the bed
+					self.printlog("Go Down FAST: M114z=%f, realZ:%f" % (
+						self.current_position[AXIS.Z_AXIS], Parameter.realz))
+					Parameter.realz -= 0.5
+					self.do_blocking_move_to_z(-0.5, True)
+					self.do_m114()
+				else:  # bltouch touch bed.
+					Parameter.realz += 1
+					self.state = MeshLevelingState.MeshProbe
+					self.first_run = True
+					self.do_blocking_move_to_z(1, True)
+					self.do_m114()
+		elif self.state == MeshLevelingState.MeshProbe:  # slow probing
+			if self.first_run:
+				self.printlog("curZ=%f, prevZ=%f, RealZ=%f" % (
+					self.current_position[AXIS.Z_AXIS], self.prev_position[AXIS.Z_AXIS],
+					Parameter.realz))
+				self.bltouch.reset(BLTouchState.BLTOUCH_DEPLOY)
+				self.first_run = False
+				self.printlog("start slow probing")
+			if not self.bltouch.trigger:
+				Parameter.realz -= 0.1
+				self.printlog("Go Down SlOW: M114z=%f, realZ:%f" % (
+					self.current_position[AXIS.Z_AXIS], Parameter.realz))
+				self.do_blocking_move_to_z(-0.1, True)
+				self.do_m114()
+			else:  # bltouch touch bed again.
+				self.state = MeshLevelingState.MeshNext
+				self.first_run = True
+				self.probe_index += 1
+				self.printlog("index: %d | X:%f, Y:%f; Z:%f, RealZ:%f" % (
+					self.probe_index - 1, self.current_position[0], self.current_position[1],
+					self.current_position[2], Parameter.realz))
+
+				self.set_z(self._zigzag_x_index, self._zigzag_y_index,
+						   Parameter.realz + Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER)
+				self.do_m114()
+				self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+
+	def do_m114(self):
+		self.printer.commands("M114")
+
+	def set_z(self, px, py, z):
+		if self.z_values is None:
+			self.printlog("ERROR SHOULD NOT HAPPENNED, CALL reset before")
+		self.z_values[px][py] = z
 
 	#  Using mesh map build with g29 to improve Z accuracy
 	#  Based on marlin : mesh_bed_leveling.h line 94 to 115

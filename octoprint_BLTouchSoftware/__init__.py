@@ -235,12 +235,10 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			m114 = re.match(r"ok\s*X:\s*(\d+\.\d+)\s*Y:\s*(\d+\.\d+)\s*Z:\s*(\d+\.\d+).*", line, re.IGNORECASE)
 			if m114:
 				# self._logger.info("M114 result: X:%s|Y:%s|Z:%s" % (m114.group(1), m114.group(2), m114.group(3)))
-				BedLeveling.set_current_pos(float(m114.group(1)), float(m114.group(2)), float(m114.group(3)))
-				if BedLeveling.state == MeshLevelingState.MeshStart:
-					BedLeveling.realz = 0
-					BedLeveling.state = MeshLevelingState.MeshNext
+				self.BedLeveling.set_current_pos(float(m114.group(1)), float(m114.group(2)), float(m114.group(3)))
+				if self.BedLeveling.state == MeshLevelingState.MeshStart:
 					Parameter.levelingActive = True
-				BedLeveling.gcode_g29()
+				self.BedLeveling.g29v2()
 		return line
 
 	def get_update_information(self):

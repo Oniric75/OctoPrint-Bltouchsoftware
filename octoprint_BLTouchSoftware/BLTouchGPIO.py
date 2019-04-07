@@ -23,7 +23,7 @@ class BLTouchGPIO:
 		self.GPIO_Switch_Zmin = 16
 		self.count = 0
 		self.bedlevelingInstance = bedlevelinginstance
-		# self.trigger = False
+		self.trigger = False
 
 		GPIO.cleanup()
 		GPIO.setmode(GPIO.BOARD)
@@ -74,7 +74,7 @@ class BLTouchGPIO:
 	'''
 
 	def reset(self, mode=BLTouchState.BLTOUCH_STOW):
-		#self.trigger = False
+		self.trigger = False
 		self.probemode(BLTouchState.BLTOUCH_RESET)
 		time.sleep(0.5)
 		self.count = 0
@@ -95,18 +95,23 @@ class BLTouchGPIO:
 	def callback_bltouch_zmin(self, channel):
 		time.sleep(0.001)
 		if GPIO.input(channel):
-			#	self.trigger = True
-			self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
-			self.send_zmin_to_printer(True)
-			time.sleep(0.005)
-			self.send_zmin_to_printer(False)
 			if Parameter.levelingActive and Parameter.levelingFirstRun:
 				self.count += 1
 				if self.count >= 2:
+					self.send_zmin_to_printer(True)
+					time.sleep(0.005)
+					self.send_zmin_to_printer(False)
 					self.count = 0
+					Parameter.realz = Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER
 					self.bedlevelingInstance.g29v2()
+					return
 			elif Parameter.levelingActive:
-				self.bedlevelingInstance.g29v2()
+				self.trigger = True
+				self.printlog("BLTOUCH TRIGGER! channel=%s" % channel)
+				return
+			self.send_zmin_to_printer(True)
+			time.sleep(0.005)
+			self.send_zmin_to_printer(False)
 
 		else:
 			self.printlog("BLTOUCH TRIGGER END! channel=%s" % channel)
