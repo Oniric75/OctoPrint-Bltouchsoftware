@@ -115,7 +115,7 @@ class BLTouchGPIO:
 			self.send_zmin_to_printer(False)
 
 		else:
-			self.printlog("BLTOUCH TRIGGER END! channel=%s" % channel)
+			# self.printlog("BLTOUCH TRIGGER END! channel=%s" % channel)
 			self.send_zmin_to_printer(False)
 
 	def callback_switch_zmin(self, channel):

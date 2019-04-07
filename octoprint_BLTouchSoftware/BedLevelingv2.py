@@ -209,8 +209,8 @@ class BedLevelingv2:
 			self.printlog("sleep 10...")
 			time.sleep(10)
 		elif self.sleepTime < 1:
-			self.printlog("sleep 0.5...")
-			time.sleep(0.5)
+			self.printlog("sleep 1...")
+			time.sleep(1)
 		else:
 			self.printlog("sleep %f..." % self.sleepTime)
 			time.sleep(self.sleepTime)
