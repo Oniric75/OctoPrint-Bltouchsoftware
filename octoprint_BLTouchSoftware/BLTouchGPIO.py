@@ -102,6 +102,7 @@ class BLTouchGPIO:
 			if Parameter.levelingHome:
 				self.count += 1
 				if self.count >= 2:
+					self.printlog("BLTOUCH HOME TRIGGER x2! channel=%s" % channel)
 					self.send_zmin_to_printer(True)
 					time.sleep(0.005)
 					self.send_zmin_to_printer(False)
