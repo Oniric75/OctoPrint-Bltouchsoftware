@@ -87,7 +87,7 @@ class BLTouchGPIO:
 			self.printlog("BLTOUCH mode change DEPLOY")
 			self._setmode(650)
 		elif mode == BLTouchState.BLTOUCH_STOW:
-			self.printlog("BLTOUCH mode change STOW : %s" % inspect.stack())
+			self.printlog("BLTOUCH mode change STOW")
 			self._setmode(1475)
 		elif mode == BLTouchState.BLTOUCH_SELFTEST:
 			self.printlog("BLTOUCH mode change SELFTEST")
