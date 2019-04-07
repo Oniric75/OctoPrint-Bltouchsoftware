@@ -265,12 +265,12 @@ class BedLeveling:
 
 		# todo : improve this part. make sure the sleep is right ... maybe the g29 should be threaded ?
 		# wait for the move to be done ...
-		if BedLeveling.sleepTime > 10:
-			BedLeveling.printlog("sleep 10...")
-			time.sleep(10)
+		if BedLeveling.sleepTime > 2:
+			BedLeveling.printlog("sleep 2...")
+			time.sleep(2)
 		elif BedLeveling.sleepTime < 1:
-			BedLeveling.printlog("sleep 0.8...")
-			time.sleep(0.8)
+			BedLeveling.printlog("sleep 0.5...")
+			time.sleep(0.5)
 		else:
 			BedLeveling.printlog("sleep %f..." % BedLeveling.sleepTime)
 			time.sleep(BedLeveling.sleepTime)

@@ -192,8 +192,7 @@ class BedLevelingv2:
 			pz)
 
 	def g29v2(self):
-		px = 0
-		py = 0
+
 
 		# Error Handling
 		if Parameter.realz <= -2:
@@ -202,8 +201,21 @@ class BedLevelingv2:
 			Parameter.levelingActive = False
 			Parameter.levelingFirstRun = False
 			self.printlog(self.z_values)
-			self.printer.commands(["G28"])
 			return
+
+		# todo : improve this part. make sure the sleep is right ... maybe the g29 should be threaded ?
+		# wait for the move to be done ...
+		if self.sleepTime > 2:
+			self.printlog("sleep 2...")
+			time.sleep(2)
+		elif self.sleepTime < 1:
+			self.printlog("sleep 0.5...")
+			time.sleep(0.5)
+		else:
+			self.printlog("sleep %f..." % self.sleepTime)
+			time.sleep(self.sleepTime)
+		self.printlog("Sleep OVER")
+
 
 		# Init : first time the g29 function is called
 		if self.state == MeshLevelingState.MeshStart:
@@ -215,6 +227,14 @@ class BedLevelingv2:
 		# self.do_m114(True)
 		elif self.state == MeshLevelingState.MeshNext:
 			self.printlog("MeshNext")
+			if self.probe_index >= Parameter.grid_max_points_x * Parameter.grid_max_points_y:
+				self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+				Parameter.levelingActive = False
+				Parameter.levelingFirstRun = False
+				self.available = True
+				self.printlog(self.z_values)
+				self.printlog("The end!")
+				return
 			if self.first_run:  # set the head in position
 				self.first_run = False
 				self.do_blocking_move_to_z(Parameter.Z_CLEARANCE_DEPLOY_PROBE)
