@@ -234,6 +234,7 @@ class BedLevelingv2:
 					self.do_m114()
 				else:  # bltouch touch bed.
 					Parameter.realz += 1
+					self.bltouch.trigger = False
 					self.state = MeshLevelingState.MeshProbe
 					self.first_run = True
 					self.do_blocking_move_to_z(1, True)
@@ -256,6 +257,7 @@ class BedLevelingv2:
 				self.state = MeshLevelingState.MeshNext
 				self.first_run = True
 				self.probe_index += 1
+				self.bltouch.trigger = False
 				self.printlog("index: %d | X:%f, Y:%f; Z:%f, RealZ:%f" % (
 					self.probe_index - 1, self.current_position[0], self.current_position[1],
 					self.current_position[2], Parameter.realz))
