@@ -168,22 +168,22 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 		elif cmd and cmd == "M280 P0 S10":
 			self._logger.info("BLTOUCH_DEPLOY")
 			# BedLeveling.bltouch.probemode(10)  # BLTOUCH_DEPLOY
-			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_DEPLOY)
+			self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_DEPLOY)
 		elif cmd and cmd == "M280 P0 S90":
 			self._logger.info("BLTOUCH_STOW")
 			# BedLeveling.bltouch.probemode(90)  # BLTOUCH_STOW
-			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_STOW)
+			self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_STOW)
 		# BedLeveling.bltouch._setmode(1475)
 		elif cmd and cmd == "M280 P0 S120":
 			self._logger.info("BLTOUCH_SELFTEST")
 			# BedLeveling.bltouch.probemode(120)  # BLTOUCH_SELFTEST
 			# BedLeveling.bltouch._setmode(1780)
-			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_SELFTEST)
+			self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_SELFTEST)
 		elif cmd and cmd == "M280 P0 S160":
 			self._logger.info("BLTOUCH_RESET")
 			# BedLeveling.bltouch.probemode(160)  # BLTOUCH_RESET
 			# BedLeveling.bltouch._setmode(2190BLTOUCH_RESET)
-			self.BedLeveling.bltouch.probemode(self, BLTouchState.BLTOUCH_RESET)
+			self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)
 		elif self.BedLeveling.available and gcode and (gcode == "G1" or gcode == "G0"):
 			# improvement doable ? look into void plan_arc in marlin_main.cpp (planner.apply_leveling)
 			G1 = self.G1regex.match(cmd)
