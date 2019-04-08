@@ -219,12 +219,13 @@ class BedLevelingv2:
 		if self.state == MeshLevelingState.MeshStart:
 			self.reset()
 			Parameter.levelingHome = True
-			Parameter.levelingActive = True
+
 			self.printer.commands(["G28"])
 			self.state = MeshLevelingState.MeshNext
 		# self.do_m114(True)
 		elif self.state == MeshLevelingState.MeshNext:
 			self.printlog("MeshNext")
+			Parameter.levelingActive = True
 			if self.probe_index >= Parameter.grid_max_points_x * Parameter.grid_max_points_y:  # End
 				self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 				Parameter.levelingActive = False
