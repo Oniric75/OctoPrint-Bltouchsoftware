@@ -221,6 +221,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 				return ["G28 X Y", "G91", "G1 X%.3f Y%.3f F%d" % (px, py, Parameter.XY_PROBE_SPEED), "G90", "G28 Z"]
 		elif cmd and cmd == "G29":
 			self.BedLeveling.reset()
+			self.BedLeveling.state = MeshLevelingState.MeshStart
 			self.BedLeveling.g29v2()
 			return
 		elif gcode and gcode == "M500":

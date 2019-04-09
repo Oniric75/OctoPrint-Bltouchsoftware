@@ -120,7 +120,7 @@ class BedLevelingv2:
 
 	# reset all the leveling
 	def reset(self):
-		self.state = MeshLevelingState.MeshStart
+		self.state = MeshLevelingState.MeshReset
 		self.sleepTime = 0
 		self.zigzag_increase = True
 		self._zigzag_x_index = -1
@@ -285,6 +285,8 @@ class BedLevelingv2:
 						   Parameter.realz + Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER)
 				self.do_m114()
 				self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+		elif self.state == MeshLevelingState.MeshReset:
+			pass
 
 	def do_m114(self):
 		self.printer.commands("M114")
