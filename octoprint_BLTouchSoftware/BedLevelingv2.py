@@ -132,6 +132,7 @@ class BedLevelingv2:
 		self.z_values = [[0 for y in range(Parameter.grid_max_points_y)] for x in
 						 range(Parameter.grid_max_points_x)]
 		self.available = False
+		self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
 
 	#  move the head on z using previous position.
 	#  could be replaced using relative ?
@@ -218,8 +219,6 @@ class BedLevelingv2:
 		# Init : first time the g29 function is called
 		if self.state == MeshLevelingState.MeshStart:
 			self.reset()
-			Parameter.levelingHome = True
-
 			self.printer.commands(["G28"])
 			self.state = MeshLevelingState.MeshNext
 		# self.do_m114(True)
