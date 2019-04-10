@@ -70,6 +70,9 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 	##~~ octoprint.plugin.StartupPlugin
 
 	def on_after_startup(self):
+		Parameter.levelingActive = False
+		Parameter.levelingHome = False
+
 		Parameter.safe_mode = self._settings.get(["safe_mode"])
 		Parameter.X_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["x_probe_offset_from_extruder"])
 		Parameter.Y_PROBE_OFFSET_FROM_EXTRUDER = self._settings.get(["y_probe_offset_from_extruder"])
@@ -106,6 +109,7 @@ class BltouchsoftwarePlugin(octoprint.plugin.StartupPlugin,
 			Parameter.min_z = 0
 			Parameter.max_z = volume["height"]
 
+		self.BedLeveling.reset()
 		self.BedLeveling.set_mesh_dist(self._settings.get(["grid_max_points_x"]),
 								  self._settings.get(["grid_max_points_y"]))
 		self.BedLeveling.bltouch.probemode(BLTouchState.BLTOUCH_RESET)

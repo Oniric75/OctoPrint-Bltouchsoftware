@@ -126,13 +126,16 @@ class BedLevelingv2:
 		self._zigzag_x_index = -1
 		self._zigzag_y_index = 0
 		self.probe_index = 0
-		Parameter.realz = 0
+
 		self.first_run = True
 		self.z_values = None
 		self.z_values = [[0 for y in range(Parameter.grid_max_points_y)] for x in
 						 range(Parameter.grid_max_points_x)]
 		self.available = False
 		self.bltouch.reset(BLTouchState.BLTOUCH_STOW)
+
+		Parameter.levelingActive = False
+
 
 	#  move the head on z using previous position.
 	#  could be replaced using relative ?
