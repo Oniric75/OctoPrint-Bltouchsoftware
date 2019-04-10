@@ -97,6 +97,7 @@ class BLTouchGPIO:
 			self._setmode(2190)
 
 	def callback_bltouch_zmin(self, channel):
+		self.printlog("BLTOUCH?")
 		time.sleep(0.001)
 		if GPIO.input(channel):
 			if Parameter.levelingHome:
