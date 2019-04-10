@@ -99,7 +99,7 @@ class BLTouchGPIO:
 	def callback_bltouch_zmin(self, channel):
 		self.printlog("BLTOUCH? %s" % GPIO.input(channel))
 		time.sleep(0.001)
-		if GPIO.input(channel) == 0:
+		if GPIO.input(channel) == 1:
 			if Parameter.levelingHome:
 				self.printlog("BLTOUCH count %i" % self.count)
 				self.count += 1
