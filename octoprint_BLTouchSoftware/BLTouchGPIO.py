@@ -111,7 +111,8 @@ class BLTouchGPIO:
 					self.count = 0
 					Parameter.realz = Parameter.Z_PROBE_OFFSET_FROM_EXTRUDER
 					Parameter.levelingHome = False
-					self.bedlevelingInstance.g29v2()
+					if Parameter.levelingActive:
+						self.bedlevelingInstance.do_m114()
 					return
 			elif Parameter.levelingActive:
 				self.trigger = True
